@@ -27,7 +27,7 @@ public class BookController {
         return ResponseEntity.ok(bookRepository.findAll());
     }
 
-    //Get /api/bookd/findById/{id} - Obtener un libro por ID
+    //Get /api/books/findById/{id} - Obtener un libro por ID
     @GetMapping("/findById/{id}")
     public ResponseEntity<Book> findById(@PathVariable UUID id){
        Book book = bookRepository.findById(id)
