@@ -90,10 +90,8 @@ public class User {
         book.getUsers().add(this);
     }
 
-    public void removeBook(Book book) {
-        if (books.remove(book)) {
-            book.getUsers().remove(this);
-        }
+    public void removeBook(UUID bookId) {
+        books.removeIf(book -> book.getId().equals(bookId));
     }
 
     @Override
