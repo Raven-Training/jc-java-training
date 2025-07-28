@@ -1,0 +1,61 @@
+package com.raven.training.presentation.controller;
+
+import com.raven.training.presentation.dto.book.BookRequest;
+import com.raven.training.presentation.dto.book.BookResponse;
+import com.raven.training.service.interfaces.IBookService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Controlador para gestionar las operaciones relacionadas con libros.
+ */
+@RestController
+@RequestMapping("/api/books")
+@AllArgsConstructor
+public class BookController {
+
+    private IBookService bookService;
+
+    //Get /api/books/find - Obtener todos los libros
+    @GetMapping("/findAll")
+    public ResponseEntity<List<BookResponse>> findAll(){
+        return new ResponseEntity<>(bookService.findAll(), HttpStatus.OK);
+    }
+
+    //Get /api/books/findById/{id} - Obtener un libro por ID
+    @GetMapping("/findById/{id}")
+    public ResponseEntity<BookResponse> findById(@PathVariable UUID id){
+       return new ResponseEntity<>(bookService.findById(id), HttpStatus.OK);
+    }
+
+    //Post /api/books/create - Crear un nuevo libro
+    @PostMapping("/create")
+    public ResponseEntity<BookResponse> create(@RequestBody BookRequest bookRequest){
+        return new ResponseEntity<>(bookService.save(bookRequest), HttpStatus.CREATED);
+    }
+
+    //Put /api/books/update/{id} - Actualizar un libro
+    @PutMapping("/update/{id}")
+    public ResponseEntity<BookResponse> update(@PathVariable UUID id, @RequestBody BookRequest bookRequest){
+        return new ResponseEntity<>(bookService.update(id, bookRequest), HttpStatus.OK);
+    }
+
+    //Delete /api/books/delete/{id} - Eliminar un libro
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable UUID id){
+        bookService.delete(id);
+    }
+}
+
+
+
+
+
+
+
+
