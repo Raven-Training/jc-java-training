@@ -1,4 +1,4 @@
-package com.raven.training.exception;
+package com.raven.training.exception.error;
 
 public class UserNotFoundException extends RuntimeException {
 
