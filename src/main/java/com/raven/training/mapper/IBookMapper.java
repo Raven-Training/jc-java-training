@@ -4,7 +4,6 @@ import com.raven.training.persistence.entity.Book;
 import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
