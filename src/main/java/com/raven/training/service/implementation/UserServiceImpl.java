@@ -16,6 +16,9 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,26 +46,6 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(UserNotFoundException::new);
 
         return userMapper.toResponse(user);
-    }
-
-    @Override
-    @Transactional
-    public UserResponse save(UserRequest userRequest) {
-        List<Book> bookList = bookRepository.findAllByIdIn(userRequest.bookIds());
-
-        if (bookList.size() != userRequest.bookIds().size()) {
-            List<UUID> foundIds = bookList.stream().map(Book::getId).toList();
-            List<UUID> missingIds = userRequest.bookIds().stream()
-                    .filter(id -> !foundIds.contains(id))
-                    .toList();
-            throw new UserNotFoundException();
-        }
-
-        User user = userMapper.toEntity(userRequest);
-        user.setBooks(bookList);
-
-        User savedUser = userRepository.save(user);
-        return userMapper.toResponse(savedUser);
     }
 
     @Override
@@ -149,5 +132,16 @@ public class UserServiceImpl implements IUserService {
         User updatedUser = userRepository.save(user);
 
         return userMapper.toResponse(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return userRepository.findUserByUserName(username)
+                .map(userMapper::toResponse)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
     }
 }

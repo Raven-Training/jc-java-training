@@ -3,6 +3,7 @@ package com.raven.training.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,6 +21,10 @@ public class AuthUser {
     @Id
     @EqualsAndHashCode.Include
     private UUID id;
+
+    private String name;
+
+    private LocalDate birthDate;
 
     @Column(unique = true)
     private String username;
