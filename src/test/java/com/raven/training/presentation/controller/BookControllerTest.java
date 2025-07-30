@@ -83,14 +83,14 @@ class BookControllerTest {
         ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10);
 
         // Assert
-        assertNotNull(response, "La respuesta no debería ser nula");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "El código de estado debería ser 200");
+        assertNotNull(response, "The answer should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
         Page<BookResponse> result = response.getBody();
-        assertNotNull(result, "El cuerpo de la respuesta no debería ser nulo");
-        assertEquals(2, result.getContent().size(), "Debería devolver 2 libros");
-        assertEquals(2, result.getTotalElements(), "El total de elementos debería ser 2");
-        assertTrue(result.isFirst(), "Debería ser la primera página");
+        assertNotNull(result, "The response body should not be null");
+        assertEquals(2, result.getContent().size(), "Should return 2 books");
+        assertEquals(2, result.getTotalElements(), "The total number of elements should be 2");
+        assertTrue(result.isFirst(), "It should be the first page");
 
         verify(bookService, times(1)).findAll(any(Pageable.class));
     }
@@ -108,13 +108,13 @@ class BookControllerTest {
         ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10);
 
         // Assert
-        assertNotNull(response, "La respuesta no debería ser nula");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "El código de estado debería ser 200");
+        assertNotNull(response, "The answer should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
         Page<BookResponse> result = response.getBody();
-        assertNotNull(result, "El cuerpo de la respuesta no debería ser nulo");
-        assertTrue(result.isEmpty(), "El resultado debería estar vacío");
-        assertEquals(0, result.getTotalElements(), "No debería haber elementos");
+        assertNotNull(result, "The response body should not be null");
+        assertTrue(result.isEmpty(), "The result should be empty");
+        assertEquals(0, result.getTotalElements(), "There should be no elements");
 
         verify(bookService, times(1)).findAll(any(Pageable.class));
     }

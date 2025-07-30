@@ -80,12 +80,12 @@ class UserControllerTest {
         ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
 
         // Assert
-        assertNotNull(response, "La respuesta no debería ser nula");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "El código de estado debería ser 200");
+        assertNotNull(response, "The response should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
         Page<UserResponse> result = response.getBody();
-        assertNotNull(result, "El cuerpo de la respuesta no debería ser nulo");
-        assertEquals(2, result.getContent().size(), "Debería devolver 2 usuarios");
+        assertNotNull(result, "The response body should not be null");
+        assertEquals(2, result.getContent().size(), "It should return 2 users");
 
         // Verificar el primer usuario
         UserResponse actualUser1 = result.getContent().get(0);
@@ -94,10 +94,10 @@ class UserControllerTest {
         assertEquals(userResponse.name(), actualUser1.name());
 
         // Verificar metadatos de paginación
-        assertEquals(2, result.getTotalElements(), "Debería haber 2 elementos en total");
-        assertEquals(1, result.getTotalPages(), "Debería haber 1 página en total");
-        assertTrue(result.isFirst(), "Debería ser la primera página");
-        assertTrue(result.isLast(), "Debería ser la última página");
+        assertEquals(2, result.getTotalElements(), "There should be 2 items in total");
+        assertEquals(1, result.getTotalPages(), "There should be 1 page in total");
+        assertTrue(result.isFirst(), "There should be 1 page in total");
+        assertTrue(result.isLast(), "It should be the last page");
 
         verify(userService, times(1)).findAll(any(Pageable.class));
     }
@@ -118,13 +118,13 @@ class UserControllerTest {
         ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
 
         // Assert
-        assertNotNull(response, "La respuesta no debería ser nula");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "El código de estado debería ser 200");
+        assertNotNull(response, "The response should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
         Page<UserResponse> result = response.getBody();
-        assertNotNull(result, "El cuerpo de la respuesta no debería ser nulo");
-        assertTrue(result.isEmpty(), "El resultado debería estar vacío");
-        assertEquals(0, result.getTotalElements(), "No debería haber elementos");
+        assertNotNull(result, "The response body should not be null");
+        assertTrue(result.isEmpty(), "The result should be empty");
+        assertEquals(0, result.getTotalElements(), "There should be no elements");
 
         verify(userService, times(1)).findAll(any(Pageable.class));
     }
