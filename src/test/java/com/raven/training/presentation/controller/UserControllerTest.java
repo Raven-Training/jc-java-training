@@ -148,24 +148,6 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("You should successfully create a new user")
-    void createUser_ShouldReturnCreatedUser() {
-        when(userService.save(any(UserRequest.class))).thenReturn(userResponse);
-
-        ResponseEntity<UserResponse> response = userController.createUser(userRequest);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(userResponse.id(), response.getBody().id());
-        assertEquals(userResponse.userName(), response.getBody().userName());
-        assertEquals(userResponse.name(), response.getBody().name());
-        assertEquals(userResponse.birthDate(), response.getBody().birthDate());
-        assertEquals(userResponse.bookIds(), response.getBody().bookIds());
-        verify(userService, times(1)).save(any(UserRequest.class));
-    }
-
-    @Test
     @DisplayName("Should update an existing user")
     void updateUser_ShouldReturnUpdatedUser() {
         when(userService.update(eq(userId), any(UserRequest.class))).thenReturn(userResponse);

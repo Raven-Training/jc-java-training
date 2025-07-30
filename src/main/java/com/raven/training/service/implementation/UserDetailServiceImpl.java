@@ -1,12 +1,18 @@
 package com.raven.training.service.implementation;
 
+import com.raven.training.exception.error.EmailAlreadyExistsException;
+import com.raven.training.exception.error.UsernameAlreadyExistsException;
+import com.raven.training.mapper.IUserMapper;
 import com.raven.training.persistence.entity.AuthUser;
+import com.raven.training.persistence.entity.User;
 import com.raven.training.persistence.repository.IAuthUserRepository;
+import com.raven.training.persistence.repository.IUserRepository;
 import com.raven.training.presentation.dto.login.AuthLoginRequest;
 import com.raven.training.presentation.dto.login.AuthLoginResponse;
 import com.raven.training.presentation.dto.register.AuthRegisterRequest;
 import com.raven.training.presentation.dto.register.AuthRegisterResponse;
 import com.raven.training.util.JwtUtils;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -24,6 +31,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserDetailServiceImpl implements UserDetailsService {
 
+    private IUserRepository userRepository;
+    private IUserMapper userMapper;
     private IAuthUserRepository authUserRepository;
     private PasswordEncoder passwordEncoder;
     private JwtUtils jwtUtils;
@@ -70,14 +79,27 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return new AuthLoginResponse(username, "User logged in correctly", accessToken, true);
     }
 
-    public AuthRegisterResponse registerUser(AuthRegisterRequest authregisterRequest){
-        String username = authregisterRequest.username();
-        String password = authregisterRequest.password();
-        String email = authregisterRequest.email();
+    @Transactional
+    public AuthRegisterResponse registerUser(AuthRegisterRequest authRegisterRequest) {
+        String username = authRegisterRequest.username();
+        String password = authRegisterRequest.password();
+        String email = authRegisterRequest.email();
+        String name = authRegisterRequest.name();
+        LocalDate birthDate = authRegisterRequest.birthDate();
+
+        if (authUserRepository.existsByUsername(username)) {
+            throw new UsernameAlreadyExistsException("The username is already in use");
+        }
+
+        if (authUserRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email is already in use");
+        }
 
         String encodedPassword = passwordEncoder.encode(password);
+        UUID userId = UUID.randomUUID();
 
-        AuthUser user = AuthUser.builder()
+        AuthUser authUser = AuthUser.builder()
+                .id(userId)
                 .username(username)
                 .password(encodedPassword)
                 .email(email)
@@ -87,10 +109,23 @@ public class UserDetailServiceImpl implements UserDetailsService {
                 .credentialNoExpired(true)
                 .build();
 
-        user.setId(UUID.randomUUID());
+        AuthUser savedAuthUser = authUserRepository.save(authUser);
 
-        AuthUser userEntitySaved = this.authUserRepository.save(user);
+        User user = User.builder()
+                .id(userId)
+                .userName(username)
+                .name(name)
+                .birthDate(birthDate)
+                .books(new ArrayList<>())
+                .build();
 
-        return new AuthRegisterResponse(userEntitySaved.getUsername(),userEntitySaved.getEmail(),"User created successfully",true);
+        userRepository.save(user);
+
+        return new AuthRegisterResponse(
+                savedAuthUser.getUsername(),
+                savedAuthUser.getEmail(),
+                "User successfully registered",
+                true
+        );
     }
 }

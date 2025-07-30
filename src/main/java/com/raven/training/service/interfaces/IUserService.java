@@ -12,9 +12,9 @@ public interface IUserService {
 
     Page<UserResponse> findAll(Pageable pageable);
     UserResponse findById(UUID id);
-    UserResponse save(UserRequest userRequest);
     UserResponse update(UUID id, UserRequest userRequest);
     void delete(UUID id);
     UserResponse addBookToUser(UUID userId, UUID bookId);
     UserResponse removeBookFromUser(UUID userId, UUID bookId);
+    UserResponse getCurrentUser();
 }
