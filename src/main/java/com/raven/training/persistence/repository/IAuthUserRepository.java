@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface IAuthUserRepository extends ListCrudRepository<AuthUser, UUID> {
 
     Optional<AuthUser> findAuthUserByUsername(String username);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 }
