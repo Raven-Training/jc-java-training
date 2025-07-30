@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -75,22 +76,65 @@ class UserServiceImplTest {
     // =========================================
 
     @Test
-    @DisplayName("Should return a list of users when they exist")
-    void findAll_WhenUsersExist_ShouldReturnListOfUsers() {
+    @DisplayName("Should return a page of users when they exist")
+    void findAll_WhenUsersExist_ShouldReturnPageOfUsers() {
         List<User> userList = Collections.singletonList(testUser);
         UserResponse userResponse = new UserResponse(
                 userId, "testuser", "Test User", testBirthDate, Collections.singletonList(bookId));
-        
-        when(userRepository.findAll()).thenReturn(userList);
-        when(userMapper.toResponseList(userList)).thenReturn(Collections.singletonList(userResponse));
 
-        var result = userService.findAll();
+        User testUser2 = User.builder()
+                .id(UUID.randomUUID())
+                .userName("anotheruser")
+                .name("Another User")
+                .birthDate(testBirthDate)
+                .books(new ArrayList<>())
+                .build();
 
-        assertNotNull(result, "The user list should not be null");
-        assertEquals(1, result.size(), "Should return a user");
-        assertEquals(userId, result.get(0).id(), "The user ID should match");
-        verify(userRepository, times(1)).findAll();
-        verify(userMapper, times(1)).toResponseList(userList);
+        List<User> allUsers = Arrays.asList(testUser, testUser2);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("userName").ascending()); // Página de tamaño 1
+
+        Page<User> userPage = new PageImpl<>(
+                Collections.singletonList(testUser),
+                pageable,
+                2
+        );
+
+
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(userPage);
+        when(userMapper.toResponse(any(User.class))).thenReturn(userResponse);
+
+        Page<UserResponse> result = userService.findAll(pageable);
+
+        assertNotNull(result, "The result should not be null");
+        assertEquals(1, result.getContent().size(), "Should return 1 user");
+        assertEquals(userId, result.getContent().get(0).id(), "The user ID should match");
+        assertEquals(2, result.getTotalElements(), "The total number of elements should be 2");
+        assertEquals(2, result.getTotalPages(), "There should be 2 pages in total");
+        assertTrue(result.isFirst(), "Should be the first page");
+        assertTrue(result.hasNext(), "Should have a next page");
+        assertFalse(result.isLast(), "Shouldn't be the last page");
+
+        verify(userRepository, times(1)).findAll(any(Pageable.class));
+        verify(userMapper, times(1)).toResponse(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no users exist")
+    void findAll_WhenNoUsersExist_ShouldReturnEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("userName").ascending());
+        Page<User> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+
+        Page<UserResponse> result = userService.findAll(pageable);
+
+        assertNotNull(result, "The result should not be null");
+        assertTrue(result.isEmpty(), "The result should be empty");
+        assertEquals(0, result.getTotalElements(), "There should be no elements");
+        assertEquals(0, result.getTotalPages(), "There should be 0 pages");
+
+        verify(userRepository, times(1)).findAll(any(Pageable.class));
+        verify(userMapper, never()).toResponse(any(User.class));
     }
 
     // =========================================

@@ -9,6 +9,8 @@ import com.raven.training.presentation.dto.book.BookResponse;
 import com.raven.training.service.interfaces.IBookService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +24,10 @@ public class BookServiceImpl implements IBookService {
     private IBookMapper bookMapper;
 
     @Override
-    @Transactional
-    public List<BookResponse> findAll() {
-        List<Book> books = bookRepository.findAll();
+    public Page<BookResponse> findAll(Pageable pageable) {
+        Page<Book> books = bookRepository.findAll(pageable);
 
-        return bookMapper.toResponseList(books);
+        return books.map(bookMapper::toResponse);
     }
 
     @Override
