@@ -14,11 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -90,33 +88,52 @@ class BookServiceImplTest {
     // =========================================
 
     @Test
-    @DisplayName("Should return a list of books when books exist")
-    void findAll_WhenBooksExist_ShouldReturnListOfBooks() {
+    @DisplayName("Should return a page of book responses when books exist")
+    void findAll_WhenBooksExist_ShouldReturnPageOfBookResponses() {
         List<Book> books = Arrays.asList(book, book);
         List<BookResponse> expectedResponses = Arrays.asList(bookResponse, bookResponse);
 
-        when(bookRepository.findAll()).thenReturn(books);
-        when(bookMapper.toResponseList(books)).thenReturn(expectedResponses);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
 
-        List<BookResponse> result = bookService.findAll();
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
 
-        assertNotNull(result, "The list of answers should not be null");
-        assertEquals(2, result.size(), "2 books should be returned");
-        verify(bookRepository, times(1)).findAll();
-        verify(bookMapper, times(1)).toResponseList(books);
+        when(bookRepository.findAll(any(Pageable.class))).thenReturn(booksPage);
+
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(pageable);
+
+        assertNotNull(resultPage, "The page of book responses should not be null.");
+        assertFalse(resultPage.isEmpty(), "The page should not be empty.");
+        assertEquals(2, resultPage.getTotalElements(), "The total elements in the page should be 2.");
+        assertEquals(1, resultPage.getTotalPages(), "The total pages should be 1.");
+        assertEquals(0, resultPage.getNumber(), "The current page number should be 0.");
+        assertEquals(2, resultPage.getContent().size(), "The content of the page should have 2 books.");
+        assertEquals(expectedResponses, resultPage.getContent(), "The content of the page should match the expected responses.");
+
+        verify(bookRepository, times(1)).findAll(any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(book);
     }
 
     @Test
-    @DisplayName("Should return an empty list when there are no books")
-    void findAll_WhenNoBooks_ShouldReturnEmptyList() {
-        when(bookRepository.findAll()).thenReturn(List.of());
-        when(bookMapper.toResponseList(anyList())).thenReturn(List.of());
+    @DisplayName("Should return an empty page when no books exist")
+    void findAll_WhenNoBooksExist_ShouldReturnEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10);
 
-        List<BookResponse> result = bookService.findAll();
+        Page<Book> emptyBookPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        assertNotNull(result, "The list should not be null");
-        assertTrue(result.isEmpty(), "The list should be empty");
-        verify(bookRepository, times(1)).findAll();
+        when(bookRepository.findAll(any(Pageable.class))).thenReturn(emptyBookPage);
+
+        Page<BookResponse> resultPage = bookService.findAll(pageable);
+
+        assertNotNull(resultPage, "The page of book responses should not be null.");
+        assertTrue(resultPage.isEmpty(), "The page should be empty.");
+        assertEquals(0, resultPage.getTotalElements(), "The total elements in the page should be 0.");
+        assertEquals(0, resultPage.getTotalPages(), "The total pages should be 0.");
+        assertEquals(0, resultPage.getContent().size(), "The content of the page should have 0 books.");
+
+        verify(bookRepository, times(1)).findAll(any(Pageable.class));
+        verify(bookMapper, never()).toResponse(any(Book.class));
     }
 
     // =========================================

@@ -4,6 +4,10 @@ import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
 import com.raven.training.service.interfaces.IBookService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +26,12 @@ public class BookController {
     private IBookService bookService;
 
     @GetMapping("/findAll")
-    public ResponseEntity<List<BookResponse>> findAll(){
-        return new ResponseEntity<>(bookService.findAll(), HttpStatus.OK);
+    public ResponseEntity<Page<BookResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+
+        return new ResponseEntity<>(bookService.findAll(pageable), HttpStatus.OK);
     }
 
     @GetMapping("/findById/{id}")
