@@ -105,14 +105,14 @@ class UserServiceImplTest {
 
         Page<UserResponse> result = userService.findAll(pageable);
 
-        assertNotNull(result, "El resultado no debería ser nulo");
-        assertEquals(1, result.getContent().size(), "Debería devolver 1 usuario");
-        assertEquals(userId, result.getContent().get(0).id(), "El ID del usuario debería coincidir");
-        assertEquals(2, result.getTotalElements(), "El total de elementos debería ser 2");
-        assertEquals(2, result.getTotalPages(), "Debería haber 2 páginas en total");
-        assertTrue(result.isFirst(), "Debería ser la primera página");
-        assertTrue(result.hasNext(), "Debería tener una página siguiente");
-        assertFalse(result.isLast(), "No debería ser la última página");
+        assertNotNull(result, "The result should not be null");
+        assertEquals(1, result.getContent().size(), "Should return 1 user");
+        assertEquals(userId, result.getContent().get(0).id(), "The user ID should match");
+        assertEquals(2, result.getTotalElements(), "The total number of elements should be 2");
+        assertEquals(2, result.getTotalPages(), "There should be 2 pages in total");
+        assertTrue(result.isFirst(), "Should be the first page");
+        assertTrue(result.hasNext(), "Should have a next page");
+        assertFalse(result.isLast(), "Shouldn't be the last page");
 
         verify(userRepository, times(1)).findAll(any(Pageable.class));
         verify(userMapper, times(1)).toResponse(any(User.class));
@@ -128,10 +128,10 @@ class UserServiceImplTest {
 
         Page<UserResponse> result = userService.findAll(pageable);
 
-        assertNotNull(result, "El resultado no debería ser nulo");
-        assertTrue(result.isEmpty(), "El resultado debería estar vacío");
-        assertEquals(0, result.getTotalElements(), "No debería haber elementos");
-        assertEquals(0, result.getTotalPages(), "Debería haber 0 páginas");
+        assertNotNull(result, "The result should not be null");
+        assertTrue(result.isEmpty(), "The result should be empty");
+        assertEquals(0, result.getTotalElements(), "There should be no elements");
+        assertEquals(0, result.getTotalPages(), "There should be 0 pages");
 
         verify(userRepository, times(1)).findAll(any(Pageable.class));
         verify(userMapper, never()).toResponse(any(User.class));
