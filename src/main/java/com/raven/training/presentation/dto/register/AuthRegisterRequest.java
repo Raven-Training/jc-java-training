@@ -2,8 +2,18 @@ package com.raven.training.presentation.dto.register;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+
+import java.time.LocalDate;
 
 public record AuthRegisterRequest(
+        @NotBlank(message = "The username is obligatory") String name,
+
+        @NotNull(message = "The username is obligatory")
+        @PastOrPresent(message = "La fecha de nacimiento debe ser una fecha pasada o presente")
+        LocalDate birthDate,
+
         @NotBlank(message = "The username is obligatory") String username,
         @NotBlank(message = "The password is obligatory") String password,
 

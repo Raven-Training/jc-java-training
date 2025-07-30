@@ -38,11 +38,6 @@ public class UserController {
         return new ResponseEntity<>(userService.findById(id), HttpStatus.OK);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest) {
-        return new ResponseEntity<>(userService.save(userRequest), HttpStatus.CREATED);
-    }
-
     @PutMapping("/update/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @RequestBody UserRequest userRequest) {
         return new ResponseEntity<>(userService.update(id, userRequest), HttpStatus.OK);
@@ -61,5 +56,10 @@ public class UserController {
     @DeleteMapping("/{userId}/books/{bookId}")
     public ResponseEntity<UserResponse> removeBookFromUser(@PathVariable UUID userId, @PathVariable UUID bookId) {
         return new ResponseEntity<>(userService.removeBookFromUser(userId, bookId), HttpStatus.OK);
+    }
+
+    @GetMapping("/logged")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        return new ResponseEntity<>(userService.getCurrentUser(), HttpStatus.OK);
     }
 }
