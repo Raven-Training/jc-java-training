@@ -12,10 +12,12 @@ import java.util.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "users")
 public class User {
 
     @Id
+    @EqualsAndHashCode.Include
     private UUID id;
 
     private String userName;
@@ -24,12 +26,13 @@ public class User {
 
     private LocalDate birthDate;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_books",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "book_id")
     )
+    @Builder.Default
     private List<Book> books = new ArrayList<>();
 
     @PrePersist

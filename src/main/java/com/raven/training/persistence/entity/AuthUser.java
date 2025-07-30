@@ -12,10 +12,13 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 @Table(name = "auth_user")
 public class AuthUser {
 
     @Id
+    @EqualsAndHashCode.Include
     private UUID id;
 
     @Column(unique = true)

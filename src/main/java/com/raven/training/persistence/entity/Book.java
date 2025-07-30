@@ -11,10 +11,13 @@ import java.util.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
 @Table(name = "book")
 public class Book {
 
     @Id
+    @EqualsAndHashCode.Include
     private UUID id;
 
     private String gender;
@@ -28,6 +31,7 @@ public class Book {
     private String isbn;
 
     @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
+    @Builder.Default
     private List<User> users = new ArrayList<>();
 
     @PrePersist
