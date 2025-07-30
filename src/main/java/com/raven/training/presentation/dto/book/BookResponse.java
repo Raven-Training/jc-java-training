@@ -1,6 +1,5 @@
 package com.raven.training.presentation.dto.book;
 
-import java.util.Set;
 import java.util.UUID;
 
 public record BookResponse(

@@ -1,8 +1,6 @@
 package com.raven.training.persistence.model;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,6 +8,8 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ErrorResponse {
 
     private Integer status;

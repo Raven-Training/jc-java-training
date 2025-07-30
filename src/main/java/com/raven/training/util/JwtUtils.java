@@ -44,7 +44,7 @@ public class JwtUtils {
                 .sign(algorithm);
     }
 
-    public DecodedJWT validationToken(String token){
+    public DecodedJWT validationToken(String token) throws JWTVerificationException {
         try {
             Algorithm algorithm = Algorithm.HMAC256(this.privateKey);
 
@@ -53,9 +53,8 @@ public class JwtUtils {
                     .build();
 
             return verifier.verify(token);
-
-        }catch (JWTVerificationException exception){
-            throw new JWTVerificationException("Token invalid, not Authorized");
+        } catch (JWTVerificationException exception) {
+            throw exception;
         }
     }
 
