@@ -10,11 +10,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,24 +57,76 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should return all users successfully")
-    void findAll_ShouldReturnAllUsers() {
-        List<UserResponse> expectedUsers = Arrays.asList(userResponse);
-        when(userService.findAll()).thenReturn(expectedUsers);
+    @DisplayName("Should return a page of users successfully")
+    void findAll_ShouldReturnPageOfUsers() {
+        // Arrange
+        UserResponse userResponse2 = new UserResponse(
+                UUID.randomUUID(),
+                "anotheruser",
+                "Another User",
+                LocalDate.of(1995, 5, 15),
+                List.of()
+        );
 
-        ResponseEntity<List<UserResponse>> response = userController.findAll();
+        Page<UserResponse> expectedPage = new PageImpl<>(
+                Arrays.asList(userResponse, userResponse2),
+                PageRequest.of(0, 10, Sort.by("id").ascending()),
+                2
+        );
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        UserResponse actualUser = response.getBody().get(0);
-        assertEquals(userResponse.id(), actualUser.id());
-        assertEquals(userResponse.userName(), actualUser.userName());
-        assertEquals(userResponse.name(), actualUser.name());
-        assertEquals(userResponse.birthDate(), actualUser.birthDate());
-        assertEquals(userResponse.bookIds(), actualUser.bookIds());
-        verify(userService, times(1)).findAll();
+        when(userService.findAll(any(Pageable.class))).thenReturn(expectedPage);
+
+        // Act
+        ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
+
+        // Assert
+        assertNotNull(response, "The response should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
+
+        Page<UserResponse> result = response.getBody();
+        assertNotNull(result, "The response body should not be null");
+        assertEquals(2, result.getContent().size(), "It should return 2 users");
+
+        // Verificar el primer usuario
+        UserResponse actualUser1 = result.getContent().get(0);
+        assertEquals(userResponse.id(), actualUser1.id());
+        assertEquals(userResponse.userName(), actualUser1.userName());
+        assertEquals(userResponse.name(), actualUser1.name());
+
+        // Verificar metadatos de paginación
+        assertEquals(2, result.getTotalElements(), "There should be 2 items in total");
+        assertEquals(1, result.getTotalPages(), "There should be 1 page in total");
+        assertTrue(result.isFirst(), "There should be 1 page in total");
+        assertTrue(result.isLast(), "It should be the last page");
+
+        verify(userService, times(1)).findAll(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return empty page when no users exist")
+    void findAll_ShouldReturnEmptyPage_WhenNoUsersExist() {
+        // Arrange
+        Page<UserResponse> emptyPage = new PageImpl<>(
+                Collections.emptyList(),
+                PageRequest.of(0, 10, Sort.by("id").ascending()),
+                0
+        );
+
+        when(userService.findAll(any(Pageable.class))).thenReturn(emptyPage);
+
+        // Act
+        ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
+
+        // Assert
+        assertNotNull(response, "The response should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
+
+        Page<UserResponse> result = response.getBody();
+        assertNotNull(result, "The response body should not be null");
+        assertTrue(result.isEmpty(), "The result should be empty");
+        assertEquals(0, result.getTotalElements(), "There should be no elements");
+
+        verify(userService, times(1)).findAll(any(Pageable.class));
     }
 
     @Test

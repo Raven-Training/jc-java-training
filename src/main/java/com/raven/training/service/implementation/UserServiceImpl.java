@@ -14,6 +14,8 @@ import com.raven.training.presentation.dto.user.UserResponse;
 import com.raven.training.service.interfaces.IUserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,11 +30,10 @@ public class UserServiceImpl implements IUserService {
     private final IBookRepository bookRepository;
 
     @Override
-    @Transactional
-    public List<UserResponse> findAll() {
-        List<User> userList =  userRepository.findAll();
+    public Page<UserResponse> findAll(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
 
-        return userMapper.toResponseList(userList);
+        return users.map(userMapper::toResponse);
     }
 
     @Override
