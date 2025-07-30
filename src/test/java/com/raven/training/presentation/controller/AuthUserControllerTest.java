@@ -22,6 +22,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDate;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -59,6 +61,7 @@ class AuthUserControllerTest {
                 .build();
 
         authLoginRequest = new AuthLoginRequest("testuser", "password123");
+        LocalDate birthDate = LocalDate.parse("2001-02-27");
 
 
         authLoginResponse = new AuthLoginResponse(
@@ -69,6 +72,8 @@ class AuthUserControllerTest {
         );
 
         authRegisterRequest = new AuthRegisterRequest(
+                "user",
+                birthDate,
                 "testuser",
                 "password123",
                 "test@example.com"

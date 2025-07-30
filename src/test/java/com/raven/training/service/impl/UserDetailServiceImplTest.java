@@ -1,7 +1,9 @@
 package com.raven.training.service.impl;
 
 import com.raven.training.persistence.entity.AuthUser;
+import com.raven.training.persistence.entity.User;
 import com.raven.training.persistence.repository.IAuthUserRepository;
+import com.raven.training.persistence.repository.IUserRepository;
 import com.raven.training.presentation.dto.login.AuthLoginRequest;
 import com.raven.training.presentation.dto.login.AuthLoginResponse;
 import com.raven.training.presentation.dto.register.AuthRegisterRequest;
@@ -21,6 +23,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,6 +40,9 @@ class UserDetailServiceImplTest {
 
     @Mock
     private IAuthUserRepository authUserRepository;
+
+    @Mock
+    private IUserRepository userRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -161,20 +168,29 @@ class UserDetailServiceImplTest {
         verify(jwtUtils, times(1)).createToken(any(Authentication.class));
     }
 
-    // =========================================
-    // Tests for registerUser()
-    // =========================================
+//     =========================================
+//     Tests for registerUser()
+//     =========================================
 
     @Test
-    @DisplayName("Should register a new user correctly.")
+    @DisplayName("Should register a new user correctly with all fields.")
     void registerUser_WithValidData_ShouldReturnAuthRegisterResponse() {
         String rawPassword = "newPassword123";
         String encodedPassword = "$2a$10$encodedpassword";
+        String name = "Test User";
+        LocalDate birthDate = LocalDate.of(1990, 1, 1);
+
         AuthRegisterRequest registerRequest = new AuthRegisterRequest(
-                "newuser", rawPassword, "newuser@example.com");
-        
+                name,
+                birthDate,
+                "newuser",
+                rawPassword,
+                "newuser@example.com");
+
+        UUID userId = UUID.randomUUID();
+
         AuthUser newUser = AuthUser.builder()
-                .id(UUID.randomUUID())
+                .id(userId)
                 .username(registerRequest.username())
                 .password(encodedPassword)
                 .email(registerRequest.email())
@@ -184,16 +200,31 @@ class UserDetailServiceImplTest {
                 .credentialNoExpired(true)
                 .build();
 
+        User user = User.builder()
+                .id(userId)
+                .userName(registerRequest.username())
+                .name(name)
+                .birthDate(birthDate)
+                .books(new ArrayList<>())
+                .build();
+
         when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
         when(authUserRepository.save(any(AuthUser.class))).thenReturn(newUser);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(authUserRepository.existsByUsername(anyString())).thenReturn(false);
+        when(authUserRepository.existsByEmail(anyString())).thenReturn(false);
 
         AuthRegisterResponse response = userDetailService.registerUser(registerRequest);
 
-        assertNotNull(response, "The answer should not be null");
+        assertNotNull(response, "The response should not be null");
         assertEquals(registerRequest.username(), response.username(), "Username should match");
-        assertEquals(registerRequest.email(), response.email(), "The email should match");
-        assertTrue(response.status(), "The state should be true");
+        assertEquals(registerRequest.email(), response.email(), "Email should match");
+        assertTrue(response.status(), "Status should be true");
+
         verify(passwordEncoder, times(1)).encode(rawPassword);
         verify(authUserRepository, times(1)).save(any(AuthUser.class));
+        verify(userRepository, times(1)).save(any(User.class));
+        verify(authUserRepository, times(1)).existsByUsername(registerRequest.username());
+        verify(authUserRepository, times(1)).existsByEmail(registerRequest.email());
     }
 }
