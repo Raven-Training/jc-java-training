@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Controller to manage user-related operations
- */
 @RestController
 @RequestMapping("/api/users")
 @AllArgsConstructor
