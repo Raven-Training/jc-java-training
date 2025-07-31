@@ -70,53 +70,187 @@ class BookControllerTest {
     }
 
     @Test
-    @DisplayName("Should return a page of book responses when books exist")
-    void findAll_WhenBooksExist_ShouldReturnPageOfBookResponses() {
-        // Arrange
+    @DisplayName("Should return a page of book responses when no filters are submitted and books exist")
+    void findAll_NoFilters_WhenBooksExist_ShouldReturnPageOfBookResponses() {
         List<BookResponse> bookResponses = Arrays.asList(bookResponse, bookResponse);
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
 
-        when(bookService.findAll(any(Pageable.class))).thenReturn(expectedPage);
+        when(bookService.findAll(eq(null), eq(null), eq(null), any(Pageable.class))).thenReturn(expectedPage);
 
-        // Act
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10);
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
 
-        // Assert
         assertNotNull(response, "The answer should not be null");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200 OK");
 
         Page<BookResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
+        assertFalse(result.isEmpty(), "The result should be empty");
         assertEquals(2, result.getContent().size(), "Should return 2 books");
-        assertEquals(2, result.getTotalElements(), "The total number of elements should be 2");
-        assertTrue(result.isFirst(), "It should be the first page");
+        assertEquals(2, result.getTotalElements(), "The total number of items should be 2");
+        assertTrue(result.isFirst(), "Should be the first page");
 
-        verify(bookService, times(1)).findAll(any(Pageable.class));
+        verify(bookService, times(1)).findAll(eq(null), eq(null), eq(null), any(Pageable.class));
     }
 
     @Test
-    @DisplayName("Should return empty page when no books exist")
-    void findAll_WhenNoBooksExist_ShouldReturnEmptyPage() {
-        // Arrange
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
+    @DisplayName("Should return an empty page when no filters are sent and no books exist")
+    void findAll_NoFilters_WhenNoBooksExist_ShouldReturnEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<BookResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(bookService.findAll(any(Pageable.class))).thenReturn(emptyPage);
+        when(bookService.findAll(eq(null), eq(null), eq(null), any(Pageable.class))).thenReturn(emptyPage);
 
-        // Act
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10);
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
 
-        // Assert
-        assertNotNull(response, "The answer should not be null");
-        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
+        assertNotNull(response, "The response should not be null");
+        assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200 OK");
 
         Page<BookResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
         assertTrue(result.isEmpty(), "The result should be empty");
         assertEquals(0, result.getTotalElements(), "There should be no elements");
 
-        verify(bookService, times(1)).findAll(any(Pageable.class));
+        verify(bookService, times(1)).findAll(eq(null), eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when a title filter is submitted")
+    void findAll_WithTitleFilter_ShouldReturnPageOfBookResponses() {
+        String titleFilter = "Clean Code";
+        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
+
+        when(bookService.findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class))).thenReturn(expectedPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(bookResponses, result.getContent());
+
+        verify(bookService, times(1)).findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return a book answer page when submitting an author filter")
+    void findAll_WithAuthorFilter_ShouldReturnPageOfBookResponses() {
+        String authorFilter = "Robert C. Martin";
+        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
+
+        when(bookService.findAll(eq(null), eq(authorFilter), eq(null), any(Pageable.class))).thenReturn(expectedPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, authorFilter, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(bookResponses, result.getContent());
+
+        verify(bookService, times(1)).findAll(eq(null), eq(authorFilter), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when a genre filter is submitted")
+    void findAll_WithGenderFilter_ShouldReturnPageOfBookResponses() {
+        String genderFilter = "Programming";
+        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
+
+        when(bookService.findAll(eq(null), eq(null), eq(genderFilter), any(Pageable.class))).thenReturn(expectedPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, genderFilter);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(bookResponses, result.getContent());
+
+        verify(bookService, times(1)).findAll(eq(null), eq(null), eq(genderFilter), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book responses when multiple filters are submitted")
+    void findAll_WithMultipleFilters_ShouldReturnPageOfBookResponses() {
+        String titleFilter = "Clean Code";
+        String authorFilter = "Robert C. Martin";
+        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
+
+        when(bookService.findAll(eq(titleFilter), eq(authorFilter), eq(null), any(Pageable.class))).thenReturn(expectedPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, authorFilter, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(bookResponses, result.getContent());
+
+        verify(bookService, times(1)).findAll(eq(titleFilter), eq(authorFilter), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return an empty page when filters do not find books")
+    void findAll_WithFilters_WhenNoBooksFound_ShouldReturnEmptyPage() {
+        String titleFilter = "NonExistentTitle";
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(bookService.findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class))).thenReturn(emptyPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.getTotalElements());
+
+        verify(bookService, times(1)).findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book responses when empty filters are submitted and books exist")
+    void findAll_WithEmptyStringFilters_ShouldReturnPageOfBookResponses() {
+        String emptyTitle = "";
+        String emptyAuthor = "";
+        String emptyGender = "";
+        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
+
+        when(bookService.findAll(eq(emptyTitle), eq(emptyAuthor), eq(emptyGender), any(Pageable.class))).thenReturn(expectedPage);
+
+        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, emptyTitle, emptyAuthor, emptyGender);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Page<BookResponse> result = response.getBody();
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(bookResponses, result.getContent());
+
+        verify(bookService, times(1)).findAll(eq(emptyTitle), eq(emptyAuthor), eq(emptyGender), any(Pageable.class));
     }
 
     @Test
