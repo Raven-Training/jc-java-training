@@ -24,10 +24,20 @@ public class BookServiceImpl implements IBookService {
     private IBookMapper bookMapper;
 
     @Override
-    public Page<BookResponse> findAll(Pageable pageable) {
-        Page<Book> books = bookRepository.findAll(pageable);
+    public Page<BookResponse> findAll(String title, String author, String gender, Pageable pageable) {
 
-        return books.map(bookMapper::toResponse);
+        if ((title == null || title.isEmpty()) &&
+                (author == null || author.isEmpty()) &&
+                (gender == null || gender.isEmpty())) {
+            return bookRepository.findAll(pageable).map(bookMapper::toResponse);
+        }
+
+        return bookRepository.findAllWithFilters(
+                title != null ? title : "",
+                author != null ? author : "",
+                gender != null ? gender : "",
+                pageable
+        ).map(bookMapper::toResponse);
     }
 
     @Override

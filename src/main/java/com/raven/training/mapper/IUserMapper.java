@@ -21,7 +21,7 @@ public interface IUserMapper {
 
     IUserMapper INSTANCE = Mappers.getMapper(IUserMapper.class);
 
-    @Mapping(target = "books", ignore = true) // Ignoramos el mapeo de libros en la entidad
+    @Mapping(target = "books", ignore = true)
     User toEntity(UserRequest userRequest);
 
     @Mapping(target = "bookIds", expression = "java(mapBooksToBookIds(user.getBooks()))")

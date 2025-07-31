@@ -28,10 +28,17 @@ public class BookController {
     @GetMapping("/findAll")
     public ResponseEntity<Page<BookResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size){
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String gender) {
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
 
-        return new ResponseEntity<>(bookService.findAll(pageable), HttpStatus.OK);
+        return new ResponseEntity<>(
+                bookService.findAll(title, author, gender, pageable),
+                HttpStatus.OK
+        );
     }
 
     @GetMapping("/findById/{id}")
