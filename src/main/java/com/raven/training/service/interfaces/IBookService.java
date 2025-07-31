@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface IBookService {
 
-    Page<BookResponse> findAll(Pageable pageable);
+    Page<BookResponse> findAll(String title, String author, String gender, Pageable pageable);
     BookResponse findById(UUID id);
     BookResponse save(BookRequest bookRequest);
     BookResponse update(UUID id, BookRequest bookRequest);
