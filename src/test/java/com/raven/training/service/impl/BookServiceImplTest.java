@@ -88,52 +88,199 @@ class BookServiceImplTest {
     // =========================================
 
     @Test
-    @DisplayName("Should return a page of book responses when books exist")
-    void findAll_WhenBooksExist_ShouldReturnPageOfBookResponses() {
+    @DisplayName("Should return a page of book answers when there are no filters and books exist")
+    void findAll_NoFilters_WhenBooksExist_ShouldReturnPageOfBookResponses() {
         List<Book> books = Arrays.asList(book, book);
         List<BookResponse> expectedResponses = Arrays.asList(bookResponse, bookResponse);
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("title").ascending());
-
         Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
 
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(booksPage);
-
         when(bookMapper.toResponse(book)).thenReturn(bookResponse);
 
-        Page<BookResponse> resultPage = bookService.findAll(pageable);
+        Page<BookResponse> resultPage = bookService.findAll(null, null, null, pageable);
 
-        assertNotNull(resultPage, "The page of book responses should not be null.");
-        assertFalse(resultPage.isEmpty(), "The page should not be empty.");
-        assertEquals(2, resultPage.getTotalElements(), "The total elements in the page should be 2.");
-        assertEquals(1, resultPage.getTotalPages(), "The total pages should be 1.");
-        assertEquals(0, resultPage.getNumber(), "The current page number should be 0.");
-        assertEquals(2, resultPage.getContent().size(), "The content of the page should have 2 books.");
-        assertEquals(expectedResponses, resultPage.getContent(), "The content of the page should match the expected responses.");
+        assertNotNull(resultPage, "The book answer page should not be null");
+        assertFalse(resultPage.isEmpty(), "The page should not be empty");
+        assertEquals(2, resultPage.getTotalElements(), "The total number of elements on the page should be 2");
+        assertEquals(1, resultPage.getTotalPages(), "The total number of pages should be 1");
+        assertEquals(0, resultPage.getNumber(), "The current page number should be 0");
+        assertEquals(2, resultPage.getContent().size(), "The content of the page should have 2 books");
+        assertEquals(expectedResponses, resultPage.getContent(), "The content of the page should match the expected responses");
 
         verify(bookRepository, times(1)).findAll(any(Pageable.class));
-        verify(bookMapper, times(books.size())).toResponse(book);
+        verify(bookRepository, never()).findAllWithFilters(anyString(), anyString(), anyString(), any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
     }
 
     @Test
-    @DisplayName("Should return an empty page when no books exist")
-    void findAll_WhenNoBooksExist_ShouldReturnEmptyPage() {
+    @DisplayName("Should return an empty page when there are no filters and no books exist")
+    void findAll_NoFilters_WhenNoBooksExist_ShouldReturnEmptyPage() {
         Pageable pageable = PageRequest.of(0, 10);
-
         Page<Book> emptyBookPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(bookRepository.findAll(any(Pageable.class))).thenReturn(emptyBookPage);
 
-        Page<BookResponse> resultPage = bookService.findAll(pageable);
+        Page<BookResponse> resultPage = bookService.findAll(null, null, null, pageable);
 
-        assertNotNull(resultPage, "The page of book responses should not be null.");
-        assertTrue(resultPage.isEmpty(), "The page should be empty.");
-        assertEquals(0, resultPage.getTotalElements(), "The total elements in the page should be 0.");
-        assertEquals(0, resultPage.getTotalPages(), "The total pages should be 0.");
-        assertEquals(0, resultPage.getContent().size(), "The content of the page should have 0 books.");
+        assertNotNull(resultPage, "The book answer page should not be null");
+        assertTrue(resultPage.isEmpty(), "The page should be empty");
+        assertEquals(0, resultPage.getTotalElements(), "The total number of elements on the page should be 0");
+        assertEquals(0, resultPage.getTotalPages(), "The total number of pages should be 0");
+        assertEquals(0, resultPage.getContent().size(), "The page content should have 0 books.");
 
         verify(bookRepository, times(1)).findAll(any(Pageable.class));
+        verify(bookRepository, never()).findAllWithFilters(anyString(), anyString(), anyString(), any(Pageable.class));
         verify(bookMapper, never()).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when a title filter is applied")
+    void findAll_WithTitleFilter_ShouldReturnPageOfBookResponses() {
+        String titleFilter = "Clean Code";
+        List<Book> books = Arrays.asList(book);
+        List<BookResponse> expectedResponses = Arrays.asList(bookResponse);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAllWithFilters(eq(titleFilter), eq(""), eq(""), any(Pageable.class)))
+                .thenReturn(booksPage);
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(titleFilter, null, null, pageable);
+
+        assertNotNull(resultPage);
+        assertFalse(resultPage.isEmpty());
+        assertEquals(1, resultPage.getTotalElements());
+        assertEquals(expectedResponses, resultPage.getContent());
+
+        verify(bookRepository, times(1)).findAllWithFilters(eq(titleFilter), eq(""), eq(""), any(Pageable.class));
+        verify(bookRepository, never()).findAll(any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when an author filter is applied")
+    void findAll_WithAuthorFilter_ShouldReturnPageOfBookResponses() {
+        String authorFilter = "Robert C. Martin";
+        List<Book> books = Arrays.asList(book);
+        List<BookResponse> expectedResponses = Arrays.asList(bookResponse);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAllWithFilters(eq(""), eq(authorFilter), eq(""), any(Pageable.class)))
+                .thenReturn(booksPage);
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(null, authorFilter, null, pageable);
+
+        assertNotNull(resultPage);
+        assertEquals(expectedResponses, resultPage.getContent());
+
+        verify(bookRepository, times(1)).findAllWithFilters(eq(""), eq(authorFilter), eq(""), any(Pageable.class));
+        verify(bookRepository, never()).findAll(any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when a genre filter is applied")
+    void findAll_WithGenderFilter_ShouldReturnPageOfBookResponses() {
+        String genderFilter = "Programming";
+        List<Book> books = Arrays.asList(book);
+        List<BookResponse> expectedResponses = Arrays.asList(bookResponse);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAllWithFilters(eq(""), eq(""), eq(genderFilter), any(Pageable.class)))
+                .thenReturn(booksPage);
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(null, null, genderFilter, pageable);
+
+        assertNotNull(resultPage);
+        assertEquals(expectedResponses, resultPage.getContent());
+
+        verify(bookRepository, times(1)).findAllWithFilters(eq(""), eq(""), eq(genderFilter), any(Pageable.class));
+        verify(bookRepository, never()).findAll(any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Should return a page of book answers when multiple filters are applied")
+    void findAll_WithMultipleFilters_ShouldReturnPageOfBookResponses() {
+        String titleFilter = "Clean Code";
+        String authorFilter = "Robert C. Martin";
+        String genderFilter = "Programming";
+        List<Book> books = Arrays.asList(book);
+        List<BookResponse> expectedResponses = Arrays.asList(bookResponse);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAllWithFilters(eq(titleFilter), eq(authorFilter), eq(genderFilter), any(Pageable.class)))
+                .thenReturn(booksPage);
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(titleFilter, authorFilter, genderFilter, pageable);
+
+        assertNotNull(resultPage);
+        assertEquals(expectedResponses, resultPage.getContent());
+
+        verify(bookRepository, times(1)).findAllWithFilters(eq(titleFilter), eq(authorFilter), eq(genderFilter), any(Pageable.class));
+        verify(bookRepository, never()).findAll(any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("Should return an empty page when filters do not find books")
+    void findAll_WithFilters_WhenNoBooksFound_ShouldReturnEmptyPage() {
+        String titleFilter = "NonExistentTitle";
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> emptyBookPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+        when(bookRepository.findAllWithFilters(eq(titleFilter), eq(""), eq(""), any(Pageable.class)))
+                .thenReturn(emptyBookPage);
+
+        Page<BookResponse> resultPage = bookService.findAll(titleFilter, null, null, pageable);
+
+        assertNotNull(resultPage);
+        assertTrue(resultPage.isEmpty());
+        assertEquals(0, resultPage.getTotalElements());
+
+        verify(bookRepository, times(1)).findAllWithFilters(eq(titleFilter), eq(""), eq(""), any(Pageable.class));
+        verify(bookRepository, never()).findAll(any(Pageable.class));
+        verify(bookMapper, never()).toResponse(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("You should call findAll without filters when the filters are empty strings")
+    void findAll_WithEmptyFilters_ShouldCallFindAll() {
+        String emptyTitle = "";
+        String emptyAuthor = "";
+        String emptyGender = "";
+        List<Book> books = Arrays.asList(book);
+        List<BookResponse> expectedResponses = Arrays.asList(bookResponse);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> booksPage = new PageImpl<>(books, pageable, books.size());
+
+        when(bookRepository.findAll(any(Pageable.class)))
+                .thenReturn(booksPage);
+        when(bookMapper.toResponse(book)).thenReturn(bookResponse);
+
+        Page<BookResponse> resultPage = bookService.findAll(emptyTitle, emptyAuthor, emptyGender, pageable);
+
+        assertNotNull(resultPage);
+        assertFalse(resultPage.isEmpty());
+        assertEquals(expectedResponses, resultPage.getContent());
+
+        verify(bookRepository, times(1)).findAll(any(Pageable.class));
+        verify(bookRepository, never()).findAllWithFilters(anyString(), anyString(), anyString(), any(Pageable.class));
+        verify(bookMapper, times(books.size())).toResponse(any(Book.class));
     }
 
     // =========================================
