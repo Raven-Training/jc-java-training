@@ -210,4 +210,15 @@ class UserControllerTest {
         assertEquals(userResponse.bookIds(), response.getBody().bookIds());
         verify(userService, times(1)).removeBookFromUser(userId, bookId);
     }
+
+    @Test
+    void getCurrentUser_ReturnsCurrentUserAndOkStatus() {
+        when(userService.getCurrentUser()).thenReturn(userResponse);
+
+        ResponseEntity<UserResponse> response = userController.getCurrentUser();
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(userResponse, response.getBody());
+    }
 }

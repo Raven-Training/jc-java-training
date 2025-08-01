@@ -75,16 +75,13 @@ public class OpenLibraryService {
      * @return DTO con la información del libro o null si no se encuentra
      */
     public BookResponseDTO findBookByIsbnWithExternalSearch(String isbn) {
-        // Buscar primero en la base de datos local
         BookResponseDTO book = findBookByIsbn(isbn);
         if (book != null) {
             return book;
         }
 
-        // Si no existe localmente, buscar en la API externa
         book = getBookInfo(isbn);
         if (book != null) {
-            // Guardar en la base de datos
             Book newBook = mapToBookEntity(book);
             bookRepository.save(newBook);
             return book;
@@ -114,7 +111,6 @@ public class OpenLibraryService {
             return null;
         }
 
-        // Get the first (and only) entry in the map
         OpenLibraryBookDTO.BookData bookData = openLibraryBook.getBooks().values().iterator().next();
         
         if (bookData == null) {

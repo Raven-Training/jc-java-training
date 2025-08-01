@@ -11,7 +11,7 @@ public record AuthRegisterRequest(
         @NotBlank(message = "The username is obligatory") String name,
 
         @NotNull(message = "The username is obligatory")
-        @PastOrPresent(message = "La fecha de nacimiento debe ser una fecha pasada o presente")
+        @PastOrPresent(message = "The date of birth must be a past or present date")
         LocalDate birthDate,
 
         @NotBlank(message = "The username is obligatory") String username,
