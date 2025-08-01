@@ -20,6 +20,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -635,5 +639,60 @@ class UserServiceImplTest {
         verify(bookRepository, times(1)).existsById(bookId);
         verify(userRepository, never()).save(any(User.class));
         verify(userMapper, never()).toResponse(any(User.class));
+    }
+
+    // =========================================
+    // Tests for getCurrentUser()
+    // =========================================
+
+    @Test
+    @DisplayName("Should return current user when user is authenticated and exists in database")
+    void getCurrentUser_WhenUserExists_ShouldReturnUserResponse() {
+        String username = "testuser";
+        UserResponse expectedResponse = new UserResponse(
+                userId, username, "Test User", testBirthDate,
+                Collections.singletonList(bookId)
+        );
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(username);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findUserByUserName(username)).thenReturn(Optional.of(testUser));
+        when(userMapper.toResponse(testUser)).thenReturn(expectedResponse);
+
+        UserResponse result = userService.getCurrentUser();
+
+        assertNotNull(result, "La respuesta no debe ser nula");
+        assertEquals(expectedResponse, result, "La respuesta debe coincidir con el usuario esperado");
+        verify(userRepository, times(1)).findUserByUserName(username);
+        verify(userMapper, times(1)).toResponse(testUser);
+    }
+
+    @Test
+    @DisplayName("Should throw UsernameNotFoundException when user is not found")
+    void getCurrentUser_WhenUserNotFound_ShouldThrowUsernameNotFoundException() {
+        String username = "nonexistent";
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn(username);
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(userRepository.findUserByUserName(username)).thenReturn(Optional.empty());
+
+        UsernameNotFoundException exception = assertThrows(
+                UsernameNotFoundException.class,
+                () -> userService.getCurrentUser(),
+                "Debería lanzar UsernameNotFoundException cuando el usuario no existe"
+        );
+
+        assertEquals("Usuario no encontrado: " + username, exception.getMessage());
+        verify(userRepository, times(1)).findUserByUserName(username);
+        verify(userMapper, never()).toResponse(any());
     }
 }

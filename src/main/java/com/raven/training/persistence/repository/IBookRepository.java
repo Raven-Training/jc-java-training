@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -25,4 +26,18 @@ public interface IBookRepository extends JpaRepository<Book, UUID> {
             @Param("gender") String gender,
             Pageable pageable
     );
+
+    /**
+     * Busca un libro por su ISBN
+     * @param isbn ISBN del libro a buscar
+     * @return Optional con el libro si se encuentra, vacío en caso contrario
+     */
+    Optional<Book> findByIsbn(String isbn);
+
+    /**
+     * Verifica si existe un libro con el ISBN especificado
+     * @param isbn ISBN a verificar
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsByIsbn(String isbn);
 }
