@@ -50,12 +50,12 @@ public class BookController {
     @GetMapping("/isbn/{isbn}")
     public ResponseEntity<BookResponseDTO> getBookByIsbn(@PathVariable String isbn) {
         BookResponseDTO book = openLibraryService.findBookByIsbnWithExternalSearch(isbn);
-        
+
         if (book != null) {
-            boolean isNewBook = bookRepository.existsByIsbn(isbn);
+            boolean bookExists = bookRepository.existsByIsbn(isbn);
             return new ResponseEntity<>(
-                book,
-                isNewBook ? HttpStatus.CREATED : HttpStatus.OK
+                    book,
+                    bookExists ? HttpStatus.OK : HttpStatus.CREATED
             );
         }
 
