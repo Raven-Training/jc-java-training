@@ -30,13 +30,11 @@ public class IdentifierDeserializer extends JsonDeserializer<Map<String, Object>
             JsonNode value = entry.getValue();
             
             if (value.isArray()) {
-                // Si es un array, tomamos el primer valor
                 ArrayNode arrayNode = (ArrayNode) value;
                 if (arrayNode.size() > 0) {
                     result.put(key, arrayNode.get(0).asText());
                 }
             } else {
-                // Si es un valor simple, lo añadimos directamente
                 result.put(key, value.asText());
             }
         });

@@ -5,6 +5,8 @@ import com.raven.training.persistence.entity.Book;
 import com.raven.training.persistence.repository.IBookRepository;
 import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
+import com.raven.training.presentation.dto.book.bookexternal.BookResponseDTO;
+import com.raven.training.service.implementation.OpenLibraryService;
 import com.raven.training.service.interfaces.IBookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,12 +36,24 @@ class BookControllerTest {
     @Mock
     private IBookService bookService;
 
+    @Mock
+    private OpenLibraryService openLibraryService;
+
+    @Mock
+    private IBookRepository bookRepository;
+
+    @InjectMocks
+    private BookController controller;
+
     @InjectMocks
     private BookController bookController;
+
 
     private BookRequest bookRequest;
     private BookResponse bookResponse;
     private final UUID bookId = UUID.randomUUID();
+    private static final String ISBN = "9780132350884";
+    private BookResponseDTO bookResponseDTO;
 
     @BeforeEach
     void setUp() {
@@ -67,6 +81,16 @@ class BookControllerTest {
                 464,
                 "9780132350884"
         );
+
+        bookResponseDTO = BookResponseDTO.builder()
+                .isbn(ISBN)
+                .title("Clean Code")
+                .subtitle("A Handbook of Agile Software Craftsmanship")
+                .publishers(Collections.singletonList("Prentice Hall"))
+                .publishDate("2008")
+                .numberOfPages(464)
+                .authors(Collections.singletonList("Robert C. Martin"))
+                .build();
     }
 
     @Test
@@ -265,6 +289,61 @@ class BookControllerTest {
         assertNotNull(response.getBody());
         assertBookEquals(bookResponse, response.getBody());
         verify(bookService, times(1)).findById(bookId);
+    }
+
+    @Test
+    void getBookByIsbn_BookExistsLocally_ReturnsOk() {
+        // Arrange
+        // Simulamos que el servicio encuentra el libro
+        when(openLibraryService.findBookByIsbnWithExternalSearch(ISBN)).thenReturn(bookResponseDTO);
+        // Simulamos que el libro ya existe en la base de datos
+        when(bookRepository.existsByIsbn(ISBN)).thenReturn(true);
+
+        // Act
+        ResponseEntity<BookResponseDTO> response = bookController.getBookByIsbn(ISBN);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(bookResponseDTO, response.getBody());
+        verify(openLibraryService, times(1)).findBookByIsbnWithExternalSearch(ISBN);
+        verify(bookRepository, times(1)).existsByIsbn(ISBN);
+    }
+
+    @Test
+    void getBookByIsbn_BookFoundExternally_ReturnsCreated() {
+        // Arrange
+        // Simulamos que el servicio encuentra el libro (y lo guarda internamente)
+        when(openLibraryService.findBookByIsbnWithExternalSearch(ISBN)).thenReturn(bookResponseDTO);
+        // Simulamos que el libro no existía antes de la búsqueda, por lo que se considera nuevo
+        when(bookRepository.existsByIsbn(ISBN)).thenReturn(false);
+
+        // Act
+        ResponseEntity<BookResponseDTO> response = bookController.getBookByIsbn(ISBN);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(bookResponseDTO, response.getBody());
+        verify(openLibraryService, times(1)).findBookByIsbnWithExternalSearch(ISBN);
+        verify(bookRepository, times(1)).existsByIsbn(ISBN);
+    }
+
+    @Test
+    void getBookByIsbn_BookNotFound_ReturnsNotFound() {
+        // Arrange
+        // Simulamos que el servicio no encuentra el libro ni localmente ni externamente
+        when(openLibraryService.findBookByIsbnWithExternalSearch(ISBN)).thenReturn(null);
+
+        // Act
+        ResponseEntity<BookResponseDTO> response = bookController.getBookByIsbn(ISBN);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(openLibraryService, times(1)).findBookByIsbnWithExternalSearch(ISBN);
+        // Verificamos que el repositorio nunca fue llamado, ya que el libro no se encontró
+        verify(bookRepository, never()).existsByIsbn(anyString());
     }
 
     @Test
