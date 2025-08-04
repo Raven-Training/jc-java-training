@@ -38,9 +38,6 @@ class GlobalExceptionHandlerTest {
     void setUp() {
     }
 
-    // ==========================================================
-    // Tests for methodArgumentNotValidException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle MethodArgumentNotValidException and return BAD_REQUEST")
     void methodArgumentNotValidException_ShouldReturnBadRequestErrorResponse() {
@@ -86,9 +83,6 @@ class GlobalExceptionHandlerTest {
         assertTrue(errorResponse.getDetails().isEmpty(), "Details list should be empty");
     }
 
-    // ==========================================================
-    // Tests for bookNotFoundException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle BookNotFoundException and return NOT_FOUND")
     void bookNotFoundException_ShouldReturnNotFoundErrorResponse() {
@@ -109,9 +103,6 @@ class GlobalExceptionHandlerTest {
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for userNotFoundException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle UserNotFoundException and return NOT_FOUND")
     void userNotFoundException_ShouldReturnNotFoundErrorResponse() {
@@ -132,9 +123,6 @@ class GlobalExceptionHandlerTest {
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for nullPointerException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle NullPointerException and return INTERNAL_SERVER_ERROR")
     void nullPointerException_ShouldReturnInternalServerErrorResponse() {
@@ -155,9 +143,6 @@ class GlobalExceptionHandlerTest {
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for generic exception()
-    // ==========================================================
     @Test
     @DisplayName("Should handle generic Exception and return INTERNAL_SERVER_ERROR")
     void genericException_ShouldReturnInternalServerErrorResponse() {
