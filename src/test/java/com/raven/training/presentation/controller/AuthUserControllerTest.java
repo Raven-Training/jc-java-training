@@ -92,7 +92,7 @@ class AuthUserControllerTest {
     void login_ShouldReturnAuthToken_WhenCredentialsAreValid() throws Exception {
         when(userDetailService.loginUser(any(AuthLoginRequest.class))).thenReturn(authLoginResponse);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authLoginRequest)))
                 .andExpect(status().isCreated())
@@ -107,7 +107,7 @@ class AuthUserControllerTest {
     void register_ShouldReturnUserDetails_WhenRegistrationIsSuccessful() throws Exception {
         when(userDetailService.registerUser(any(AuthRegisterRequest.class))).thenReturn(authRegisterResponse);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(authRegisterRequest)))
                 .andExpect(status().isCreated())
