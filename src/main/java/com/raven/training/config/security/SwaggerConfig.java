@@ -10,6 +10,16 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Configuration class for OpenAPI 3.0, used by Swagger UI.
+ * This class defines global information about the API, such as its title,
+ * description, version, and contact details. It also configures the available
+ * servers and the security scheme for authentication using a JWT token.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0.0
+ * @since 2025-08-05
+ */
 @OpenAPIDefinition(
         info = @Info(
                 title = "TRAINING APP",

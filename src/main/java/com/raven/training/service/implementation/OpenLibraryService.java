@@ -16,7 +16,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Servicio para interactuar con la API de OpenLibrary
+ * Service to interact with the OpenLibrary API to retrieve book information.
+ * This class provides methods to search for books by their ISBN, first
+ * in the local database and then, if not found, in the external API.
+ * The retrieved data is then stored in the local database for future use.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
  */
 @Slf4j
 @Service
@@ -29,9 +36,9 @@ public class OpenLibraryService {
     private final IBookRepository bookRepository;
 
     /**
-     * Obtiene información de un libro por su ISBN desde la API de OpenLibrary
-     * @param isbn ISBN del libro a buscar
-     * @return DTO con la información del libro o null si no se encuentra
+     * Get information about a book by its ISBN from the OpenLibrary API
+     * @param isbn ISBN of the book to search for
+     * @return DTO with the book information or null if not found
      */
     public BookResponseDTO getBookInfo(String isbn) {
         String url = UriComponentsBuilder.fromUriString(OPEN_LIBRARY_URL)
@@ -58,9 +65,9 @@ public class OpenLibraryService {
     }
 
     /**
-     * Busca un libro por ISBN, primero en la base de datos local
-     * @param isbn ISBN del libro a buscar
-     * @return DTO con la información del libro o null si no se encuentra
+     * Search for a book by ISBN, first in the local database
+     * @param isbn Change access modifier
+     * @return DTO with the book information or null if not found
      */
     public BookResponseDTO findBookByIsbn(String isbn) {
         return bookRepository.findByIsbn(isbn)
@@ -69,10 +76,10 @@ public class OpenLibraryService {
     }
     
     /**
-     * Busca un libro por ISBN, primero en la base de datos local y, si no se encuentra,
-     * lo busca en la API externa y lo guarda en la base de datos
-     * @param isbn ISBN del libro a buscar
-     * @return DTO con la información del libro o null si no se encuentra
+     * Search for a book by ISBN, first in the local database and if not found,
+     * it looks it up in the external API and saves it to the database
+     * @param isbn ISBN of the book to search for
+     * @return DTO with the book information or null if not found
      */
     public BookResponseDTO findBookByIsbnWithExternalSearch(String isbn) {
         BookResponseDTO book = findBookByIsbn(isbn);

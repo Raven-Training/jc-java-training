@@ -7,6 +7,18 @@ import jakarta.validation.constraints.PastOrPresent;
 
 import java.time.LocalDate;
 
+/**
+ * Data Transfer Object (DTO) representing a user registration request.
+ * This record is used to carry the necessary data to create a new user,
+ * including validation constraints for each field. All its components are
+ * immutable and directly accessible.
+ *
+ * @param name The full name of the user. Cannot be blank.
+ * @param birthDate The date of birth of the user. Cannot be null and must be a past or present date.
+ * @param username The username for the new account. Cannot be blank.
+ * @param password The password for the new account. Cannot be blank.
+ * @param email The email address of the user. Must be a valid email and cannot be blank.
+ */
 public record AuthRegisterRequest(
         @NotBlank(message = "The username is obligatory") String name,
 
