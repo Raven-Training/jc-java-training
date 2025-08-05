@@ -12,8 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ErrorResponse {
 
-    private Integer status;
-    private String message;
-    private List<String> details;
+    private List<ApiError> errors;
     private LocalDateTime timestamp;
 }

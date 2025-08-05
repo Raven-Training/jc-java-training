@@ -32,9 +32,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for the class UserServiceImpl.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Unit tests for UserServiceImpl")
 class UserServiceImplTest {
@@ -75,10 +72,6 @@ class UserServiceImplTest {
                 .build();
     }
 
-    // =========================================
-    // Tests for findAll()
-    // =========================================
-
     @Test
     @DisplayName("Should return a page of users when they exist")
     void findAll_WhenUsersExist_ShouldReturnPageOfUsers() {
@@ -95,7 +88,7 @@ class UserServiceImplTest {
                 .build();
 
         List<User> allUsers = Arrays.asList(testUser, testUser2);
-        Pageable pageable = PageRequest.of(0, 1, Sort.by("userName").ascending()); // Página de tamaño 1
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("userName").ascending());
 
         Page<User> userPage = new PageImpl<>(
                 Collections.singletonList(testUser),
@@ -141,10 +134,6 @@ class UserServiceImplTest {
         verify(userMapper, never()).toResponse(any(User.class));
     }
 
-    // =========================================
-    // Tests for findById()
-    // =========================================
-
     @Test
     @DisplayName("Should return a user when it exists with the provided ID")
     void findById_WhenUserExists_ShouldReturnUser() {
@@ -174,10 +163,6 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findById(nonExistentId);
         verify(userMapper, never()).toResponse(any(User.class));
     }
-
-    // =========================================
-    // Tests for update()
-    // =========================================
 
     @Test
     @DisplayName("Should update an existing user successfully")
@@ -257,7 +242,7 @@ class UserServiceImplTest {
         assertEquals(1, result.bookIds().size(), "There should be one book in the collection");
 
         verify(userRepository, times(1)).findById(userId);
-        verify(bookRepository, times(1)).findById(bookId); // Verificamos que se buscó el libro
+        verify(bookRepository, times(1)).findById(bookId);
         verify(userRepository, times(1)).save(any(User.class));
         verify(userMapper, times(1)).toResponse(any(User.class));
     }
@@ -482,10 +467,6 @@ class UserServiceImplTest {
         verify(userMapper, times(1)).toResponse(any(User.class));
     }
 
-    // =========================================
-    // Tests for delete()
-    // =========================================
-
     @Test
     @DisplayName("Should delete an existing user successfully?")
     void delete_WhenUserExists_ShouldDeleteUser() {
@@ -497,10 +478,6 @@ class UserServiceImplTest {
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, times(1)).delete(testUser);
     }
-
-    // =========================================
-    // Tests for addBookToUser()
-    // =========================================
 
     @Test
     @DisplayName("Should add a book to the user's collection")
@@ -543,10 +520,6 @@ class UserServiceImplTest {
         verify(bookRepository, times(1)).findById(bookId);
         verify(userRepository, never()).save(any(User.class));
     }
-
-    // =========================================
-    // Tests for removeBookFromUser()
-    // =========================================
 
     @Test
     @DisplayName("Should remove a book from the user's collection")
@@ -640,10 +613,6 @@ class UserServiceImplTest {
         verify(userRepository, never()).save(any(User.class));
         verify(userMapper, never()).toResponse(any(User.class));
     }
-
-    // =========================================
-    // Tests for getCurrentUser()
-    // =========================================
 
     @Test
     @DisplayName("Should return current user when user is authenticated and exists in database")

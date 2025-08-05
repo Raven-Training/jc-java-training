@@ -51,16 +51,13 @@ class JwtUtilsTest {
     }
 
     @Test
-    @DisplayName("Debería crear un token JWT válido")
+    @DisplayName("You should create a valid JWT token")
     void shouldCreateValidJwtToken() {
-        // Act
         String token = jwtUtils.createToken(authentication);
 
-        // Assert
         assertNotNull(token);
         assertFalse(token.isEmpty());
-        
-        // Verificar que el token se puede decodificar
+
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(PRIVATE_KEY))
                 .withIssuer(ISSUER)
                 .build()
@@ -73,45 +70,36 @@ class JwtUtilsTest {
     }
 
     @Test
-    @DisplayName("Debería validar un token JWT válido")
+    @DisplayName("Should validate a valid JWT token")
     void shouldValidateValidToken() {
-        // Arrange
         String token = jwtUtils.createToken(authentication);
 
-        // Act
         DecodedJWT decodedJWT = jwtUtils.validationToken(token);
 
-        // Assert
         assertNotNull(decodedJWT);
         assertEquals(USERNAME, decodedJWT.getSubject());
     }
 
     @Test
-    @DisplayName("Debería extraer el nombre de usuario del token")
+    @DisplayName("Should extract the username from the token")
     void shouldExtractUsernameFromToken() {
-        // Arrange
         String token = jwtUtils.createToken(authentication);
         DecodedJWT decodedJWT = jwtUtils.validationToken(token);
 
-        // Act
         String username = jwtUtils.extractUsername(decodedJWT);
 
-        // Assert
         assertEquals(USERNAME, username);
     }
 
     @Test
-    @DisplayName("Debería extraer un claim específico del token")
+    @DisplayName("Should extract a specific claim from the token")
     void shouldExtractSpecificClaim() {
-        // Arrange
         String token = jwtUtils.createToken(authentication);
         DecodedJWT decodedJWT = jwtUtils.validationToken(token);
         String claimName = "authorities";
 
-        // Act
         Claim claim = jwtUtils.getSpecificClaim(decodedJWT, claimName);
 
-        // Assert
         assertNotNull(claim);
         assertFalse(claim.isNull());
         assertTrue(claim.asString().contains(ROLE_USER));
@@ -119,16 +107,13 @@ class JwtUtilsTest {
     }
 
     @Test
-    @DisplayName("Debería extraer todos los claims del token")
+    @DisplayName("Should extract all the claims from the token.")
     void shouldExtractAllClaims() {
-        // Arrange
         String token = jwtUtils.createToken(authentication);
         DecodedJWT decodedJWT = jwtUtils.validationToken(token);
 
-        // Act
         Map<String, Claim> claims = jwtUtils.extractAllClaims(decodedJWT);
 
-        // Assert
         assertNotNull(claims);
         assertFalse(claims.isEmpty());
         assertTrue(claims.containsKey("sub"));

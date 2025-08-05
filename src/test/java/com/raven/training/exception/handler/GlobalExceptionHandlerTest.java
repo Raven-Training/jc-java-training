@@ -1,9 +1,7 @@
 package com.raven.training.exception.handler;
 
-import com.raven.training.exception.error.BookNotFoundException;
-import com.raven.training.exception.error.UserNotFoundException;
+import com.raven.training.persistence.model.ApiError;
 import com.raven.training.persistence.model.ErrorResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,13 +17,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Unit tests for GlobalExceptionHandler")
 class GlobalExceptionHandlerTest {
 
     @InjectMocks
@@ -34,13 +30,18 @@ class GlobalExceptionHandlerTest {
     @Mock
     private BindingResult bindingResult;
 
-    @BeforeEach
-    void setUp() {
+    private static class BookNotFoundException extends RuntimeException {
+        public BookNotFoundException(String message) {
+            super(message);
+        }
     }
 
-    // ==========================================================
-    // Tests for methodArgumentNotValidException()
-    // ==========================================================
+    private static class UserNotFoundException extends RuntimeException {
+        public UserNotFoundException(String message) {
+            super(message);
+        }
+    }
+
     @Test
     @DisplayName("Should handle MethodArgumentNotValidException and return BAD_REQUEST")
     void methodArgumentNotValidException_ShouldReturnBadRequestErrorResponse() {
@@ -62,19 +63,24 @@ class GlobalExceptionHandlerTest {
 
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse, "ErrorResponse body should not be null");
-        assertEquals(HttpStatus.BAD_REQUEST.value(), errorResponse.getStatus(), "Status value should be 400");
-        assertEquals("Validation failed", errorResponse.getMessage(), "Message should indicate validation failure");
-        assertNotNull(errorResponse.getDetails(), "Details list should not be null");
-        assertEquals(2, errorResponse.getDetails().size(), "Details list should contain 2 errors");
-        assertTrue(errorResponse.getDetails().contains(defaultMessage1), "Details should contain first error message");
-        assertTrue(errorResponse.getDetails().contains(defaultMessage2), "Details should contain second error message");
+        assertNotNull(errorResponse.getErrors(), "Errors list should not be null");
+        assertEquals(2, errorResponse.getErrors().size(), "Errors list should contain 2 errors");
+
+        ApiError apiError1 = errorResponse.getErrors().get(0);
+        assertEquals("0100", apiError1.getCode(), "Error code should be '0100'");
+        assertEquals(defaultMessage1, apiError1.getMessage(), "Error message should match the field error");
+
+        ApiError apiError2 = errorResponse.getErrors().get(1);
+        assertEquals("0100", apiError2.getCode(), "Error code should be '0100'");
+        assertEquals(defaultMessage2, apiError2.getMessage(), "Error message should match the field error");
+
         assertNotNull(errorResponse.getTimestamp(), "Timestamp should be present");
         assertTrue(errorResponse.getTimestamp().isBefore(LocalDateTime.now().plusSeconds(1)), "Timestamp should be current");
     }
 
     @Test
     @DisplayName("Should handle MethodArgumentNotValidException with no field errors")
-    void methodArgumentNotValidException_NoFieldErrors_ShouldReturnEmptyDetails() {
+    void methodArgumentNotValidException_NoFieldErrors_ShouldReturnEmptyErrorsList() {
         when(bindingResult.getFieldErrors()).thenReturn(Collections.emptyList());
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(null, bindingResult);
 
@@ -83,63 +89,57 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse);
-        assertTrue(errorResponse.getDetails().isEmpty(), "Details list should be empty");
+        assertTrue(errorResponse.getErrors().isEmpty(), "Errors list should be empty");
     }
 
-    // ==========================================================
-    // Tests for bookNotFoundException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle BookNotFoundException and return NOT_FOUND")
-    void bookNotFoundException_ShouldReturnNotFoundErrorResponse() {
+    void resourceNotFoundException_BookNotFound_ShouldReturnNotFoundErrorResponse() {
         String errorMessage = "Book with ID 123 not found";
         BookNotFoundException exception = new BookNotFoundException(errorMessage);
 
-        ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.bookNotFoundException(exception);
+        ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.resourceNotFoundException(exception);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
 
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse);
-        assertEquals(HttpStatus.NOT_FOUND.value(), errorResponse.getStatus());
-        assertEquals("Resource not found", errorResponse.getMessage());
-        assertEquals(1, errorResponse.getDetails().size());
-        assertEquals(errorMessage, errorResponse.getDetails().get(0));
+        assertEquals(1, errorResponse.getErrors().size());
+
+        ApiError apiError = errorResponse.getErrors().get(0);
+        assertEquals("0200", apiError.getCode());
+        assertEquals(errorMessage, apiError.getMessage());
+
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for userNotFoundException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle UserNotFoundException and return NOT_FOUND")
-    void userNotFoundException_ShouldReturnNotFoundErrorResponse() {
+    void resourceNotFoundException_UserNotFound_ShouldReturnNotFoundErrorResponse() {
         String errorMessage = "User with ID 456 not found";
         UserNotFoundException exception = new UserNotFoundException(errorMessage);
 
-        ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.userNotFoundException(exception);
+        ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.resourceNotFoundException(exception);
 
         assertNotNull(responseEntity);
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
 
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse);
-        assertEquals(HttpStatus.NOT_FOUND.value(), errorResponse.getStatus());
-        assertEquals("Resource not found", errorResponse.getMessage());
-        assertEquals(1, errorResponse.getDetails().size());
-        assertEquals(errorMessage, errorResponse.getDetails().get(0));
+        assertEquals(1, errorResponse.getErrors().size());
+
+        ApiError apiError = errorResponse.getErrors().get(0);
+        assertEquals("0200", apiError.getCode());
+        assertEquals(errorMessage, apiError.getMessage());
+
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for nullPointerException()
-    // ==========================================================
     @Test
     @DisplayName("Should handle NullPointerException and return INTERNAL_SERVER_ERROR")
     void nullPointerException_ShouldReturnInternalServerErrorResponse() {
-        String errorMessage = "Cannot invoke \"java.lang.String.length()\" because \"str\" is null";
-        NullPointerException exception = new NullPointerException(errorMessage);
+        NullPointerException exception = new NullPointerException();
 
         ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.nullPointerException(exception);
 
@@ -148,21 +148,19 @@ class GlobalExceptionHandlerTest {
 
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), errorResponse.getStatus());
-        assertEquals("Internal Server Error", errorResponse.getMessage());
-        assertEquals(1, errorResponse.getDetails().size());
-        assertEquals(errorMessage, errorResponse.getDetails().get(0));
+        assertEquals(1, errorResponse.getErrors().size());
+
+        ApiError apiError = errorResponse.getErrors().get(0);
+        assertEquals("9000", apiError.getCode());
+        assertEquals("An internal error occurred: Null reference.", apiError.getMessage());
+
         assertNotNull(errorResponse.getTimestamp());
     }
 
-    // ==========================================================
-    // Tests for generic exception()
-    // ==========================================================
     @Test
     @DisplayName("Should handle generic Exception and return INTERNAL_SERVER_ERROR")
     void genericException_ShouldReturnInternalServerErrorResponse() {
-        String errorMessage = "Something unexpected happened!";
-        Exception exception = new Exception(errorMessage);
+        Exception exception = new Exception();
 
         ResponseEntity<ErrorResponse> responseEntity = globalExceptionHandler.exception(exception);
 
@@ -171,10 +169,12 @@ class GlobalExceptionHandlerTest {
 
         ErrorResponse errorResponse = responseEntity.getBody();
         assertNotNull(errorResponse);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), errorResponse.getStatus());
-        assertEquals("An unexpected error occurred", errorResponse.getMessage());
-        assertEquals(1, errorResponse.getDetails().size());
-        assertEquals(errorMessage, errorResponse.getDetails().get(0));
+        assertEquals(1, errorResponse.getErrors().size());
+
+        ApiError apiError = errorResponse.getErrors().get(0);
+        assertEquals("9999", apiError.getCode());
+        assertEquals("An unexpected error occurred.", apiError.getMessage());
+
         assertNotNull(errorResponse.getTimestamp());
     }
 }
