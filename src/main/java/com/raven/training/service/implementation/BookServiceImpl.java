@@ -7,15 +7,23 @@ import com.raven.training.persistence.repository.IBookRepository;
 import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
 import com.raven.training.service.interfaces.IBookService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing book-related business logic.
+ * This class handles all operations for the Book entity, including
+ * retrieval, creation, modification, and deletion.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
+ */
 @Service
 @AllArgsConstructor
 public class BookServiceImpl implements IBookService {
@@ -23,6 +31,17 @@ public class BookServiceImpl implements IBookService {
     private IBookRepository bookRepository;
     private IBookMapper bookMapper;
 
+
+    /**
+     * Retrieves a paginated list of books, with optional filters for title, author, and gender.
+     * If no filters are provided, it returns all books in a paginated format.
+     *
+     * @param title The title of the book to filter by (optional).
+     * @param author The author of the book to filter by (optional).
+     * @param gender The gender of the book to filter by (optional).
+     * @param pageable Pagination and sorting information.
+     * @return A {@link Page} of {@link BookResponse} objects.
+     */
     @Override
     public Page<BookResponse> findAll(String title, String author, String gender, Pageable pageable) {
 
@@ -40,8 +59,15 @@ public class BookServiceImpl implements IBookService {
         ).map(bookMapper::toResponse);
     }
 
+    /**
+     * Finds a book by its unique identifier.
+     *
+     * @param id The UUID of the book to find.
+     * @return The found {@link BookResponse} object.
+     * @throws BookNotFoundException if a book with the given ID is not found.
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public BookResponse findById(UUID id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(BookNotFoundException::new);
@@ -49,6 +75,12 @@ public class BookServiceImpl implements IBookService {
         return bookMapper.toResponse(book);
     }
 
+    /**
+     * Saves a new book based on the provided request data.
+     *
+     * @param bookRequest The {@link BookRequest} object containing the new book's data.
+     * @return The newly created {@link BookResponse} object.
+     */
     @Override
     @Transactional
     public BookResponse save(BookRequest bookRequest) {
@@ -58,6 +90,15 @@ public class BookServiceImpl implements IBookService {
         return bookMapper.toResponse(savedBook);
     }
 
+    /**
+     * Updates an existing book with new data.
+     * It only updates the fields that are not null or empty in the request.
+     *
+     * @param id The UUID of the book to update.
+     * @param bookRequest The {@link BookRequest} object with the updated data.
+     * @return The updated {@link BookResponse} object.
+     * @throws BookNotFoundException if a book with the given ID is not found.
+     */
     @Override
     @Transactional
     public BookResponse update(UUID id, BookRequest bookRequest) {
@@ -98,6 +139,12 @@ public class BookServiceImpl implements IBookService {
                 .orElseThrow(BookNotFoundException::new);
     }
 
+    /**
+     * Deletes a book from the repository by its ID.
+     *
+     * @param id The UUID of the book to delete.
+     * @throws BookNotFoundException if a book with the given ID is not found.
+     */
     @Override
     @Transactional
     public void delete(UUID id) {

@@ -11,9 +11,28 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository interface for managing persistence operations for the {@link Book} entity.
+ * This interface extends {@link JpaRepository}, providing standard CRUD functionality
+ * and additional custom query methods for filtering and searching books.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
+ */
 @Repository
 public interface IBookRepository extends JpaRepository<Book, UUID> {
 
+    /**
+     * Finds a paginated list of books with optional filters.
+     * The search is case-insensitive for all fields.
+     *
+     * @param title An optional title to filter books by (partial match).
+     * @param author An optional author's name to filter books by (partial match).
+     * @param gender An optional genre to filter books by (exact match).
+     * @param pageable Pagination and sorting information.
+     * @return A {@link Page} of {@link Book} objects that match the criteria.
+     */
     @Query("""
         SELECT b FROM Book b 
         WHERE (COALESCE(:title, '') = '' OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) 
@@ -28,16 +47,19 @@ public interface IBookRepository extends JpaRepository<Book, UUID> {
     );
 
     /**
-     * Busca un libro por su ISBN
-     * @param isbn ISBN del libro a buscar
-     * @return Optional con el libro si se encuentra, vacío en caso contrario
+     * Finds a book by its International Standard Book Number (ISBN).
+     *
+     * @param isbn The ISBN of the book to search for.
+     * @return An {@link Optional} containing the {@link Book} if found,
+     * or an empty Optional otherwise.
      */
     Optional<Book> findByIsbn(String isbn);
 
     /**
-     * Verifica si existe un libro con el ISBN especificado
-     * @param isbn ISBN a verificar
-     * @return true si existe, false en caso contrario
+     * Checks if a book with the specified ISBN exists in the repository.
+     *
+     * @param isbn The ISBN to check for.
+     * @return {@code true} if a book with the ISBN exists, {@code false} otherwise.
      */
     boolean existsByIsbn(String isbn);
 }
