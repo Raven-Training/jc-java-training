@@ -3,6 +3,7 @@ package com.raven.training.presentation.controller;
 import com.raven.training.persistence.repository.IBookRepository;
 import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
+import com.raven.training.presentation.dto.pagination.CustomPageableResponse;
 import com.raven.training.service.implementation.OpenLibraryService;
 import com.raven.training.presentation.dto.book.bookexternal.BookResponseDTO;
 import com.raven.training.service.interfaces.IBookService;
@@ -27,7 +28,7 @@ public class BookController {
     private final IBookRepository bookRepository;
 
     @GetMapping("/findAll")
-    public ResponseEntity<Page<BookResponse>> findAll(
+    public ResponseEntity<CustomPageableResponse<BookResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String title,
@@ -35,11 +36,21 @@ public class BookController {
             @RequestParam(required = false) String gender) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        Page<BookResponse> booksPage = bookService.findAll(title, author, gender, pageable);
 
-        return new ResponseEntity<>(
-                bookService.findAll(title, author, gender, pageable),
-                HttpStatus.OK
+        CustomPageableResponse<BookResponse> response = new CustomPageableResponse<>(
+          booksPage.getContent(),
+          booksPage.getNumberOfElements(),
+          booksPage.getSize(),
+          booksPage.getNumber() * booksPage.getSize(),
+          booksPage.getTotalPages(),
+          booksPage.getTotalElements(),
+          booksPage.hasPrevious() ? booksPage.getNumber() : null,
+          booksPage.getNumber() + 1,
+          booksPage.hasNext() ? booksPage.getNumber() + 2 : null
         );
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/findById/{id}")

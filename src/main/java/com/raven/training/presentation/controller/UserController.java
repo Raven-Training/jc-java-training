@@ -1,5 +1,6 @@
 package com.raven.training.presentation.controller;
 
+import com.raven.training.presentation.dto.pagination.CustomPageableResponse;
 import com.raven.training.presentation.dto.user.UserRequest;
 import com.raven.training.presentation.dto.user.UserResponse;
 import com.raven.training.service.interfaces.IUserService;
@@ -23,11 +24,25 @@ public class UserController {
     private IUserService userService;
 
     @GetMapping("/findAll")
-    public ResponseEntity<Page<UserResponse>> findAll(
+    public ResponseEntity<CustomPageableResponse<UserResponse>> findAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
-        return new ResponseEntity<>(userService.findAll(pageable), HttpStatus.OK);
+        Page<UserResponse> usersPage = userService.findAll(pageable);
+
+        CustomPageableResponse<UserResponse> response = new CustomPageableResponse<>(
+                usersPage.getContent(),
+                usersPage.getNumberOfElements(),
+                usersPage.getSize(),
+                usersPage.getNumber() * usersPage.getSize(),
+                usersPage.getTotalPages(),
+                usersPage.getTotalElements(),
+                usersPage.hasPrevious() ? usersPage.getNumber() : null,
+                usersPage.getNumber() + 1,
+                usersPage.hasNext() ? usersPage.getNumber() + 2 : null
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/findById/{id}")
