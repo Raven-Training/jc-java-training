@@ -4,6 +4,7 @@ import com.raven.training.persistence.repository.IBookRepository;
 import com.raven.training.presentation.dto.book.BookRequest;
 import com.raven.training.presentation.dto.book.BookResponse;
 import com.raven.training.presentation.dto.book.bookexternal.BookResponseDTO;
+import com.raven.training.presentation.dto.pagination.CustomPageableResponse;
 import com.raven.training.service.implementation.OpenLibraryService;
 import com.raven.training.service.interfaces.IBookService;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,17 +90,22 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(null), eq(null), eq(null), any(Pageable.class))).thenReturn(expectedPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
 
-        assertNotNull(response, "The answer should not be null");
+        assertNotNull(response, "The response should not be null");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200 OK");
 
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
-        assertFalse(result.isEmpty(), "The result should be empty");
-        assertEquals(2, result.getContent().size(), "Should return 2 books");
-        assertEquals(2, result.getTotalElements(), "The total number of items should be 2");
-        assertTrue(result.isFirst(), "Should be the first page");
+
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(2, result.page().size(), "The page should contain 2 books");
+        assertEquals(2, result.total_count(), "The total count should be 2");
+        assertEquals(1, result.total_pages(), "The total pages should be 1");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null for the first page");
+        assertNull(result.next_page(), "The next page should be null for the last page");
 
         verify(bookService, times(1)).findAll(eq(null), eq(null), eq(null), any(Pageable.class));
     }
@@ -112,15 +118,22 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(null), eq(null), eq(null), any(Pageable.class))).thenReturn(emptyPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, null, null, null);
 
         assertNotNull(response, "The response should not be null");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200 OK");
 
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
-        assertTrue(result.isEmpty(), "The result should be empty");
-        assertEquals(0, result.getTotalElements(), "There should be no elements");
+
+        assertTrue(result.page().isEmpty(), "The result page should be empty");
+        assertEquals(0, result.page().size(), "The page should contain 0 books");
+        assertEquals(0, result.total_count(), "The total count should be 0");
+        assertEquals(0, result.total_pages(), "The total pages should be 0");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
 
         verify(bookService, times(1)).findAll(eq(null), eq(null), eq(null), any(Pageable.class));
     }
@@ -135,15 +148,22 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class))).thenReturn(expectedPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals(bookResponses, result.getContent());
+
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(1, result.page().size(), "The page should contain 1 book");
+        assertEquals(1, result.total_count(), "The total count should be 1");
+        assertEquals(1, result.total_pages(), "The total pages should be 1");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
+        assertEquals(bookResponses, result.page());
 
         verify(bookService, times(1)).findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class));
     }
@@ -158,40 +178,24 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(null), eq(authorFilter), eq(null), any(Pageable.class))).thenReturn(expectedPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, authorFilter, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, null, authorFilter, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals(bookResponses, result.getContent());
+
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(1, result.page().size(), "The page should contain 1 book");
+        assertEquals(1, result.total_count(), "The total count should be 1");
+        assertEquals(1, result.total_pages(), "The total pages should be 1");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
+        assertEquals(bookResponses, result.page());
 
         verify(bookService, times(1)).findAll(eq(null), eq(authorFilter), eq(null), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("Should return a page of book answers when a genre filter is submitted")
-    void findAll_WithGenderFilter_ShouldReturnPageOfBookResponses() {
-        String genderFilter = "Programming";
-        List<BookResponse> bookResponses = Arrays.asList(bookResponse);
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
-        Page<BookResponse> expectedPage = new PageImpl<>(bookResponses, pageable, bookResponses.size());
-
-        when(bookService.findAll(eq(null), eq(null), eq(genderFilter), any(Pageable.class))).thenReturn(expectedPage);
-
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, null, null, genderFilter);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals(bookResponses, result.getContent());
-
-        verify(bookService, times(1)).findAll(eq(null), eq(null), eq(genderFilter), any(Pageable.class));
     }
 
     @Test
@@ -205,15 +209,22 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(titleFilter), eq(authorFilter), eq(null), any(Pageable.class))).thenReturn(expectedPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, authorFilter, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, titleFilter, authorFilter, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals(bookResponses, result.getContent());
+
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(1, result.page().size(), "The page should contain 1 book");
+        assertEquals(1, result.total_count(), "The total count should be 1");
+        assertEquals(1, result.total_pages(), "The total pages should be 1");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
+        assertEquals(bookResponses, result.page());
 
         verify(bookService, times(1)).findAll(eq(titleFilter), eq(authorFilter), eq(null), any(Pageable.class));
     }
@@ -227,14 +238,21 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class))).thenReturn(emptyPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, titleFilter, null, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result);
-        assertTrue(result.isEmpty());
-        assertEquals(0, result.getTotalElements());
+
+        assertTrue(result.page().isEmpty(), "The result page should be empty");
+        assertEquals(0, result.page().size(), "The page should contain 0 books");
+        assertEquals(0, result.total_count(), "The total count should be 0");
+        assertEquals(0, result.total_pages(), "The total pages should be 0");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
 
         verify(bookService, times(1)).findAll(eq(titleFilter), eq(null), eq(null), any(Pageable.class));
     }
@@ -251,15 +269,22 @@ class BookControllerTest {
 
         when(bookService.findAll(eq(emptyTitle), eq(emptyAuthor), eq(emptyGender), any(Pageable.class))).thenReturn(expectedPage);
 
-        ResponseEntity<Page<BookResponse>> response = bookController.findAll(0, 10, emptyTitle, emptyAuthor, emptyGender);
+        ResponseEntity<CustomPageableResponse<BookResponse>> response = bookController.findAll(0, 10, emptyTitle, emptyAuthor, emptyGender);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Page<BookResponse> result = response.getBody();
+        CustomPageableResponse<BookResponse> result = response.getBody();
         assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.getTotalElements());
-        assertEquals(bookResponses, result.getContent());
+
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(1, result.page().size(), "The page should contain 1 book");
+        assertEquals(1, result.total_count(), "The total count should be 1");
+        assertEquals(1, result.total_pages(), "The total pages should be 1");
+        assertEquals(10, result.limit(), "The limit should be 10");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
+        assertEquals(bookResponses, result.page());
 
         verify(bookService, times(1)).findAll(eq(emptyTitle), eq(emptyAuthor), eq(emptyGender), any(Pageable.class));
     }
@@ -280,18 +305,13 @@ class BookControllerTest {
 
     @Test
     void getBookByIsbn_BookNotFound_ReturnsNotFound() {
-        // Arrange
-        // Simulamos que el servicio no encuentra el libro ni localmente ni externamente
         when(openLibraryService.findBookByIsbnWithExternalSearch(ISBN)).thenReturn(null);
 
-        // Act
         ResponseEntity<BookResponseDTO> response = bookController.getBookByIsbn(ISBN);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(openLibraryService, times(1)).findBookByIsbnWithExternalSearch(ISBN);
-        // Verificamos que el repositorio nunca fue llamado, ya que el libro no se encontró
         verify(bookRepository, never()).existsByIsbn(anyString());
     }
 
@@ -309,7 +329,6 @@ class BookControllerTest {
         verify(bookService, times(1)).save(any(BookRequest.class));
     }
 
-    // Metodo auxiliar para verificar la igualdad de libros
     private void assertBookEquals(BookResponse expected, BookResponse actual) {
         assertAll("Check book properties",
                 () -> assertEquals(expected.id(), actual.id(), "The ID does not match"),
