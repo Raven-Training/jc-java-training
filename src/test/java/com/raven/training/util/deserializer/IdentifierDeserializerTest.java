@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ class IdentifierDeserializerTest {
     }
 
     @Test
+    @DisplayName("Should deserialize a simple key-value pair and return a map with a string value")
     void deserialize_WithSimpleKeyValue_ReturnsMapWithStringValue() throws JsonProcessingException {
         String json = "{\"key\": \"value\"}";
 
@@ -36,6 +38,7 @@ class IdentifierDeserializerTest {
     }
 
     @Test
+    @DisplayName("Should deserialize an array value and return the first element of the array")
     void deserialize_WithArrayValue_ReturnsMapWithFirstArrayElement() throws JsonProcessingException {
         String json = "{\"key\": [\"first\", \"second\"]}";
 
@@ -47,6 +50,7 @@ class IdentifierDeserializerTest {
     }
 
     @Test
+    @DisplayName("Should return an empty map when the JSON value is an empty array")
     void deserialize_WithEmptyArray_ReturnsEmptyMap() throws JsonProcessingException {
         String json = "{\"key\": []}";
 
@@ -57,6 +61,7 @@ class IdentifierDeserializerTest {
     }
 
     @Test
+    @DisplayName("Should handle multiple keys with different value types correctly")
     void deserialize_WithMultipleKeys_ReturnsMapWithAllKeys() throws JsonProcessingException {
         String json = "{\"key1\": \"value1\", \"key2\": [\"arrayValue\"], \"key3\": 123}";
 

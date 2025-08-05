@@ -1,5 +1,6 @@
 package com.raven.training.presentation.controller;
 
+import com.raven.training.presentation.dto.pagination.CustomPageableResponse;
 import com.raven.training.presentation.dto.user.UserRequest;
 import com.raven.training.presentation.dto.user.UserResponse;
 import com.raven.training.service.interfaces.IUserService;
@@ -57,9 +58,8 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should return a page of users successfully")
-    void findAll_ShouldReturnPageOfUsers() {
-        // Arrange
+    @DisplayName("Should return a custom paginated response with users successfully")
+    void findAll_ShouldReturnCustomPageableResponseWithUsers() {
         UserResponse userResponse2 = new UserResponse(
                 UUID.randomUUID(),
                 "anotheruser",
@@ -68,63 +68,70 @@ class UserControllerTest {
                 List.of()
         );
 
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<UserResponse> expectedPage = new PageImpl<>(
                 Arrays.asList(userResponse, userResponse2),
-                PageRequest.of(0, 10, Sort.by("id").ascending()),
+                pageable,
                 2
         );
 
         when(userService.findAll(any(Pageable.class))).thenReturn(expectedPage);
 
-        // Act
-        ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
+        ResponseEntity<CustomPageableResponse<UserResponse>> response = userController.findAll(0, 10);
 
-        // Assert
         assertNotNull(response, "The response should not be null");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
-        Page<UserResponse> result = response.getBody();
+        CustomPageableResponse<UserResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
-        assertEquals(2, result.getContent().size(), "It should return 2 users");
 
-        // Verificar el primer usuario
-        UserResponse actualUser1 = result.getContent().get(0);
+        assertFalse(result.page().isEmpty(), "The result page should not be empty");
+        assertEquals(2, result.page().size(), "It should return 2 users");
+        assertEquals(2, result.total_count(), "There should be 2 items in total");
+        assertEquals(1, result.total_pages(), "There should be 1 page in total");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
+
+        UserResponse actualUser1 = result.page().get(0);
         assertEquals(userResponse.id(), actualUser1.id());
         assertEquals(userResponse.userName(), actualUser1.userName());
         assertEquals(userResponse.name(), actualUser1.name());
-
-        // Verificar metadatos de paginación
-        assertEquals(2, result.getTotalElements(), "There should be 2 items in total");
-        assertEquals(1, result.getTotalPages(), "There should be 1 page in total");
-        assertTrue(result.isFirst(), "There should be 1 page in total");
-        assertTrue(result.isLast(), "It should be the last page");
 
         verify(userService, times(1)).findAll(any(Pageable.class));
     }
 
     @Test
-    @DisplayName("Should return empty page when no users exist")
-    void findAll_ShouldReturnEmptyPage_WhenNoUsersExist() {
+    @DisplayName("Should return an empty custom paginated response when no users exist")
+    void findAll_ShouldReturnEmptyCustomPageableResponse_WhenNoUsersExist() {
         // Arrange
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
         Page<UserResponse> emptyPage = new PageImpl<>(
                 Collections.emptyList(),
-                PageRequest.of(0, 10, Sort.by("id").ascending()),
+                pageable,
                 0
         );
 
         when(userService.findAll(any(Pageable.class))).thenReturn(emptyPage);
 
         // Act
-        ResponseEntity<Page<UserResponse>> response = userController.findAll(0, 10);
+        ResponseEntity<CustomPageableResponse<UserResponse>> response = userController.findAll(0, 10);
 
         // Assert
         assertNotNull(response, "The response should not be null");
         assertEquals(HttpStatus.OK, response.getStatusCode(), "The status code should be 200");
 
-        Page<UserResponse> result = response.getBody();
+        // Obtenemos el cuerpo de la respuesta como nuestro record CustomPageableResponse
+        CustomPageableResponse<UserResponse> result = response.getBody();
         assertNotNull(result, "The response body should not be null");
-        assertTrue(result.isEmpty(), "The result should be empty");
-        assertEquals(0, result.getTotalElements(), "There should be no elements");
+
+        // Verificamos las propiedades del record
+        assertTrue(result.page().isEmpty(), "The result page should be empty");
+        assertEquals(0, result.total_count(), "There should be no elements in total");
+        assertEquals(0, result.total_pages(), "There should be 0 pages in total");
+        assertEquals(1, result.current_page(), "The current page should be 1");
+        assertNull(result.previous_page(), "The previous page should be null");
+        assertNull(result.next_page(), "The next page should be null");
 
         verify(userService, times(1)).findAll(any(Pageable.class));
     }
