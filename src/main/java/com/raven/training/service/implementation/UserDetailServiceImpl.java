@@ -12,7 +12,7 @@ import com.raven.training.presentation.dto.login.AuthLoginResponse;
 import com.raven.training.presentation.dto.register.AuthRegisterRequest;
 import com.raven.training.presentation.dto.register.AuthRegisterResponse;
 import com.raven.training.util.JwtUtils;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +27,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.UUID;
 
+/**
+ * Service implementation for user authentication and authorization using Spring Security.
+ * This class handles loading user details, authentication, login, and registration processes.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
+ */
 @Service
 @AllArgsConstructor
 public class UserDetailServiceImpl implements UserDetailsService {
@@ -37,8 +45,17 @@ public class UserDetailServiceImpl implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
     private JwtUtils jwtUtils;
 
-
+    /**
+     * Locates the user based on the username. In the actual implementation, the search
+     * is delegated to the repository. This method is crucial for Spring Security
+     * to perform the authentication process.
+     *
+     * @param username The username of the user to load.
+     * @return A fully populated user record (never <code>null</code>).
+     * @throws UsernameNotFoundException if the user could not be found.
+     */
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         AuthUser user = authUserRepository.findAuthUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("The user " + username + " doesn't exist"));
@@ -54,6 +71,16 @@ public class UserDetailServiceImpl implements UserDetailsService {
         );
     }
 
+    /**
+     * Authenticates a user with a given username and password.
+     * It uses the <code>loadUserByUsername</code> method to retrieve user details and then
+     * verifies the provided password.
+     *
+     * @param username The username of the user.
+     * @param password The raw password submitted by the user.
+     * @return The authenticated {@link Authentication} object.
+     * @throws BadCredentialsException if the password does not match the stored password.
+     */
     public Authentication authenticate(String username, String password) {
         UserDetails userDetails = this.loadUserByUsername(username);
 
@@ -67,6 +94,12 @@ public class UserDetailServiceImpl implements UserDetailsService {
                 userDetails.getAuthorities());
     }
 
+    /**
+     * Handles the user login process by authenticating the user and generating a JWT access token.
+     *
+     * @param authLoginRequest The {@link AuthLoginRequest} containing login credentials.
+     * @return An {@link AuthLoginResponse} with the username and the JWT token.
+     */
     public AuthLoginResponse loginUser(AuthLoginRequest authLoginRequest) {
 
         String username = authLoginRequest.username();
@@ -79,6 +112,16 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return new AuthLoginResponse(username, "User logged in correctly", accessToken, true);
     }
 
+    /**
+     * Registers a new user, saving the authentication details and the user profile.
+     * This method is transactional, ensuring that both records (AuthUser and User) are
+     * created atomically.
+     *
+     * @param authRegisterRequest The {@link AuthRegisterRequest} with the user registration data.
+     * @return An {@link AuthRegisterResponse} with a confirmation message.
+     * @throws UsernameAlreadyExistsException if the username is already in use.
+     * @throws EmailAlreadyExistsException if the email is already in use.
+     */
     @Transactional
     public AuthRegisterResponse registerUser(AuthRegisterRequest authRegisterRequest) {
         String username = authRegisterRequest.username();

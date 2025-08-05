@@ -12,7 +12,7 @@ import com.raven.training.persistence.repository.IBookRepository;
 import com.raven.training.presentation.dto.user.UserRequest;
 import com.raven.training.presentation.dto.user.UserResponse;
 import com.raven.training.service.interfaces.IUserService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +21,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
+/**
+ * Service implementation for managing user-related business logic.
+ * This class handles all operations for the User entity, including
+ * retrieval, creation, modification, deletion, and managing book collections.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
+ */
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements IUserService {
@@ -32,6 +40,12 @@ public class UserServiceImpl implements IUserService {
     private final IUserMapper userMapper;
     private final IBookRepository bookRepository;
 
+    /**
+     * Retrieves a paginated list of all users.
+     *
+     * @param pageable Pagination and sorting information.
+     * @return A {@link Page} of {@link UserResponse} objects.
+     */
     @Override
     public Page<UserResponse> findAll(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
@@ -39,8 +53,15 @@ public class UserServiceImpl implements IUserService {
         return users.map(userMapper::toResponse);
     }
 
+    /**
+     * Finds a user by their unique identifier.
+     *
+     * @param id The UUID of the user to find.
+     * @return The found {@link UserResponse} object.
+     * @throws UserNotFoundException if a user with the given ID is not found.
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserResponse findById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
@@ -48,6 +69,15 @@ public class UserServiceImpl implements IUserService {
         return userMapper.toResponse(user);
     }
 
+    /**
+     * Updates an existing user's data. It updates all fields in the request
+     * and also manages the user's book collection.
+     *
+     * @param id The UUID of the user to update.
+     * @param userRequest The {@link UserRequest} object with the updated data.
+     * @return The updated {@link UserResponse} object.
+     * @throws UserNotFoundException if a user with the given ID is not found.
+     */
     @Override
     @Transactional
     public UserResponse update(UUID id, UserRequest userRequest) {
@@ -79,7 +109,14 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(UserNotFoundException::new);
     }
 
+    /**
+     * Deletes a user from the repository by their ID.
+     *
+     * @param id The UUID of the user to delete.
+     * @throws UserNotFoundException if a user with the given ID is not found.
+     */
     @Override
+    @Transactional
     public void delete(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
@@ -87,6 +124,16 @@ public class UserServiceImpl implements IUserService {
         userRepository.delete(user);
     }
 
+    /**
+     * Adds a book to a user's collection.
+     *
+     * @param userId The UUID of the user.
+     * @param bookId The UUID of the book to add.
+     * @return The updated {@link UserResponse} object.
+     * @throws UserNotFoundException if the user is not found.
+     * @throws BookNotFoundException if the book is not found.
+     * @throws BookAlreadyInCollectionException if the book is already in the user's collection.
+     */
     @Override
     @Transactional
     public UserResponse addBookToUser(UUID userId, UUID bookId) {
@@ -108,7 +155,17 @@ public class UserServiceImpl implements IUserService {
 
         return userMapper.toResponse(updatedUser);
     }
-    
+
+    /**
+     * Removes a book from a user's collection.
+     *
+     * @param userId The UUID of the user.
+     * @param bookId The UUID of the book to remove.
+     * @return The updated {@link UserResponse} object.
+     * @throws UserNotFoundException if the user is not found.
+     * @throws BookNotFoundException if the book is not found.
+     * @throws BookNotInCollectionException if the book is not in the user's collection.
+     */
     @Override
     @Transactional
     public UserResponse removeBookFromUser(UUID userId, UUID bookId) {
@@ -134,6 +191,13 @@ public class UserServiceImpl implements IUserService {
         return userMapper.toResponse(updatedUser);
     }
 
+    /**
+     * Retrieves the details of the currently authenticated user.
+     * It uses Spring Security's context to get the username of the logged-in user.
+     *
+     * @return The {@link UserResponse} object for the current user.
+     * @throws UsernameNotFoundException if the authenticated user's username is not found in the repository.
+     */
     @Override
     @Transactional
     public UserResponse getCurrentUser() {
