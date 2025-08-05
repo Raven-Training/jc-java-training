@@ -6,6 +6,16 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Entity representing a user of the application.
+ * This class maps to the "users" table in the database and contains
+ * information about the user, including their personal details and a
+ * collection of books they own or have added.
+ *
+ * @author Juan Esteban Camacho Barrera
+ * @version 1.0
+ * @since 2025-08-05
+ */
 @Entity
 @Getter
 @Setter
@@ -26,6 +36,11 @@ public class User {
 
     private LocalDate birthDate;
 
+    /**
+     * A list of books associated with the user.
+     * This is a many-to-many relationship, and the relationship is managed
+     * by the join table "user_books".
+     */
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_books",
@@ -35,6 +50,10 @@ public class User {
     @Builder.Default
     private List<Book> books = new ArrayList<>();
 
+    /**
+     * Callback method executed before the entity is persisted.
+     * It ensures a UUID is generated for the user if one is not already set.
+     */
     @PrePersist
     public void prePersist() {
         if (id == null) {
