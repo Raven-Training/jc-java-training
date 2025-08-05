@@ -41,7 +41,7 @@ public class SecurityConfig {
                             "/webjars/**").permitAll();
 
                     //request public loggin
-                    http.requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll();
+                    http.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll();
 
                     http.anyRequest().authenticated();
                 })

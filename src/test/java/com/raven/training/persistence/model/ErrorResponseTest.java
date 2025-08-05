@@ -2,55 +2,51 @@ package com.raven.training.persistence.model;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @DisplayName("Unit tests for ErrorResponse DTO")
 class ErrorResponseTest {
 
     @Test
     @DisplayName("Should create ErrorResponse using builder and verify getters")
-    void builder_and_getters_ShouldWorkCorrectly() {
-        Integer expectedStatus = 400;
-        String expectedMessage = "Test Message";
-        List<String> expectedDetails = Arrays.asList("Detail 1", "Detail 2");
+    void builderAndGetters_ShouldWorkCorrectly() {
+        List<ApiError> expectedErrors = Arrays.asList(
+                new ApiError("INVALID_FIELD", "The 'name' field is required"),
+                new ApiError("INVALID_FORMAT", "The email format is incorrect")
+        );
+
         LocalDateTime expectedTimestamp = LocalDateTime.now();
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(expectedStatus)
-                .message(expectedMessage)
-                .details(expectedDetails)
+                .errors(expectedErrors)
                 .timestamp(expectedTimestamp)
                 .build();
 
-        assertEquals(expectedStatus, errorResponse.getStatus(), "Status should match");
-        assertEquals(expectedMessage, errorResponse.getMessage(), "Message should match");
-        assertEquals(expectedDetails, errorResponse.getDetails(), "Details should match");
+        assertNotNull(errorResponse.getErrors(), "Errors list should not be null");
+        assertEquals(expectedErrors.size(), errorResponse.getErrors().size(), "Errors list size should match");
+        assertEquals(expectedErrors, errorResponse.getErrors(), "Errors list should match");
         assertEquals(expectedTimestamp, errorResponse.getTimestamp(), "Timestamp should match");
     }
 
     @Test
     @DisplayName("Should allow setting and getting all fields using setters and getters")
-    void setters_and_getters_ShouldWorkCorrectly() {
+    void settersAndGetters_ShouldWorkCorrectly() {
         ErrorResponse errorResponse = new ErrorResponse();
 
-        Integer newStatus = 500;
-        String newMessage = "New Test Message";
-        List<String> newDetails = Arrays.asList("New Detail 1", "New Detail 2");
+        List<ApiError> newErrors = Arrays.asList(
+                new ApiError("SERVER_ERROR", "Internal server error")
+        );
         LocalDateTime newTimestamp = LocalDateTime.now().plusHours(1);
 
-        errorResponse.setStatus(newStatus);
-        errorResponse.setMessage(newMessage);
-        errorResponse.setDetails(newDetails);
+        errorResponse.setErrors(newErrors);
         errorResponse.setTimestamp(newTimestamp);
 
-        assertEquals(newStatus, errorResponse.getStatus(), "Status should be updated via setter");
-        assertEquals(newMessage, errorResponse.getMessage(), "Message should be updated via setter");
-        assertEquals(newDetails, errorResponse.getDetails(), "Details should be updated via setter");
+        assertEquals(newErrors, errorResponse.getErrors(), "Errors list should be updated via setter");
         assertEquals(newTimestamp, errorResponse.getTimestamp(), "Timestamp should be updated via setter");
     }
 
@@ -59,14 +55,10 @@ class ErrorResponseTest {
     void setters_ShouldHandleNullValues() {
         ErrorResponse errorResponse = new ErrorResponse();
 
-        errorResponse.setStatus(null);
-        errorResponse.setMessage(null);
-        errorResponse.setDetails(null);
+        errorResponse.setErrors(null);
         errorResponse.setTimestamp(null);
 
-        assertNull(errorResponse.getStatus());
-        assertNull(errorResponse.getMessage());
-        assertNull(errorResponse.getDetails());
-        assertNull(errorResponse.getTimestamp());
+        assertNull(errorResponse.getErrors(), "Errors list should be null");
+        assertNull(errorResponse.getTimestamp(), "Timestamp should be null");
     }
 }

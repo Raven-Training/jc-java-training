@@ -6,6 +6,7 @@ import com.raven.training.presentation.dto.book.bookexternal.BookResponseDTO;
 import com.raven.training.presentation.dto.book.bookexternal.OpenLibraryBookDTO;
 import com.raven.training.service.implementation.OpenLibraryService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,6 +71,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return a book DTO when the external API call is successful")
     void getBookInfo_Success() {
         when(restTemplate.getForEntity(eq(OPEN_LIBRARY_URL), eq(OpenLibraryBookDTO.class)))
                 .thenReturn(new ResponseEntity<>(externalBookDto, HttpStatus.OK));
@@ -83,6 +85,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return null when the external API returns an error status")
     void getBookInfo_ApiReturnsError_ReturnsNull() {
         when(restTemplate.getForEntity(eq(OPEN_LIBRARY_URL), eq(OpenLibraryBookDTO.class)))
                 .thenReturn(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
@@ -94,6 +97,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return null when the external API call throws an exception")
     void getBookInfo_ApiThrowsException_ReturnsNull() {
         when(restTemplate.getForEntity(eq(OPEN_LIBRARY_URL), eq(OpenLibraryBookDTO.class)))
                 .thenThrow(new RuntimeException("API is down"));
@@ -106,6 +110,7 @@ class OpenLibraryServiceImplTest {
 
 
     @Test
+    @DisplayName("Should return a book DTO when the book is found in the local database")
     void findBookByIsbn_FoundLocally_ReturnsBookDTO() {
         when(bookRepository.findByIsbn(ISBN)).thenReturn(Optional.of(localBook));
 
@@ -117,6 +122,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return null when the book is not found in the local database")
     void findBookByIsbn_NotFoundLocally_ReturnsNull() {
         when(bookRepository.findByIsbn(ISBN)).thenReturn(Optional.empty());
 
@@ -127,6 +133,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return a book DTO and not call the external API when found locally")
     void findBookByIsbnWithExternalSearch_FoundLocally_ReturnsBookDTO() {
         OpenLibraryService spyService = spy(openLibraryService);
         BookResponseDTO localBookDto = new BookResponseDTO("9780321765723", "Effective Java", "3rd Edition", Collections.singletonList("Addison-Wesley Professional"), "2017", 416, Collections.singletonList("Joshua Bloch"));
@@ -141,6 +148,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should save the book and return its DTO when found only in the external API")
     void findBookByIsbnWithExternalSearch_FoundExternally_SavesAndReturnsBookDTO() {
         OpenLibraryService spyService = spy(openLibraryService);
         doReturn(null).when(spyService).findBookByIsbn(ISBN);
@@ -156,6 +164,7 @@ class OpenLibraryServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should return null when the book is not found in the local database or external API")
     void findBookByIsbnWithExternalSearch_NotFoundAnywhere_ReturnsNull() {
         OpenLibraryService spyService = spy(openLibraryService);
         doReturn(null).when(spyService).findBookByIsbn(ISBN);

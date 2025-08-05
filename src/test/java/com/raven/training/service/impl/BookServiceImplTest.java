@@ -83,10 +83,6 @@ class BookServiceImplTest {
         );
     }
 
-    // =========================================
-    // Tests for findAll()
-    // =========================================
-
     @Test
     @DisplayName("Should return a page of book answers when there are no filters and books exist")
     void findAll_NoFilters_WhenBooksExist_ShouldReturnPageOfBookResponses() {
@@ -283,10 +279,6 @@ class BookServiceImplTest {
         verify(bookMapper, times(books.size())).toResponse(any(Book.class));
     }
 
-    // =========================================
-    // Tests for findById()
-    // =========================================
-
     @Test
     @DisplayName("Should return a book when it exists with the provided ID")
     void findById_WhenBookExists_ShouldReturnBook() {
@@ -313,10 +305,6 @@ class BookServiceImplTest {
         verify(bookMapper, never()).toResponse(any(Book.class));
     }
 
-    // =========================================
-    // Tests for save()
-    // =========================================
-
     @Test
     @DisplayName("Should save and return a book when a valid request is provided")
     void save_WithValidRequest_ShouldSaveAndReturnBook() {
@@ -332,10 +320,6 @@ class BookServiceImplTest {
         verify(bookRepository, times(1)).save(book);
         verify(bookMapper, times(1)).toResponse(book);
     }
-
-    // =========================================
-    // Tests for update()
-    // =========================================
 
     @Test
     @DisplayName("Should update and return a book when it exists with the provided ID")
@@ -547,10 +531,6 @@ class BookServiceImplTest {
         verify(bookRepository, times(1)).save(any(Book.class));
         verify(bookMapper, times(1)).toResponse(any(Book.class));
     }
-
-    // =========================================
-    // Tests for delete()
-    // =========================================
 
     @Test
     @DisplayName("You should delete a book when it exists with the provided ID")

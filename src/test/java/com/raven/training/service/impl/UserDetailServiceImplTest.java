@@ -31,9 +31,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for the class UserDetailServiceImpl.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Unit tests for UserDetailServiceImpl")
 class UserDetailServiceImplTest {
@@ -73,10 +70,6 @@ class UserDetailServiceImplTest {
                 .build();
     }
 
-    // =========================================
-    // Tests for loadUserByUsername()
-    // =========================================
-
     @Test
     @DisplayName("Should load a user by username when it exists")
     void loadUserByUsername_WhenUserExists_ShouldReturnUserDetails() {
@@ -103,10 +96,6 @@ class UserDetailServiceImplTest {
                 "Should throw UsernameNotFoundException");
         verify(authUserRepository, times(1)).findAuthUserByUsername(nonExistentUsername);
     }
-
-    // =========================================
-    // Tests for authenticate()
-    // =========================================
 
     @Test
     @DisplayName("Should authenticate a user with valid credentials")
@@ -141,10 +130,6 @@ class UserDetailServiceImplTest {
         verify(passwordEncoder, times(1)).matches(wrongPassword, testUser.getPassword());
     }
 
-    // =========================================
-    // Tests for loginUser()
-    // =========================================
-
     @Test
     @DisplayName("Should be logged in successfully with valid credentials")
     void loginUser_WithValidCredentials_ShouldReturnAuthResponse() {
@@ -167,10 +152,6 @@ class UserDetailServiceImplTest {
         verify(authUserRepository, times(1)).findAuthUserByUsername(username);
         verify(jwtUtils, times(1)).createToken(any(Authentication.class));
     }
-
-//     =========================================
-//     Tests for registerUser()
-//     =========================================
 
     @Test
     @DisplayName("Should register a new user correctly with all fields.")
